@@ -3,672 +3,255 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aviator Pro - تخمين ذكي</title>
+    <title>Aviator Pro - نسخة نهائية مستقرة</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0a0a0f;
-            --bg-secondary: #12121a;
-            --fg: #ffffff;
-            --muted: #6b7280;
-            --accent: #ff3d00;
-            --accent-glow: rgba(255, 61, 0, 0.4);
-            --card: #1a1a24;
-            --border: #2a2a3a;
-            --success: #00e676;
-            --gold: #ffd700;
+            --bg: #0f0f0f;
+            --accent: #ff0000;
+            --card: #1a1a1a;
+            --border: #333333;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Cairo', sans-serif;
             background: var(--bg);
-            color: var(--fg);
+            color: white;
             min-height: 100vh;
-            overflow-x: hidden;
         }
+        .font-display { font-family: 'Orbitron', sans-serif; }
 
-        .font-display {
-            font-family: 'Orbitron', sans-serif;
-        }
-
-        .bg-animated {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: 
-                radial-gradient(ellipse at 20% 20%, rgba(255, 61, 0, 0.15) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 80%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
-                linear-gradient(180deg, var(--bg) 0%, var(--bg-secondary) 100%);
-        }
-
-        .grid-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(255, 61, 0, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 61, 0, 0.03) 1px, transparent 1px);
-            background-size: 50px 50px;
-            z-index: -1;
-            animation: gridMove 20s linear infinite;
-        }
-
-        @keyframes gridMove {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(50px); }
-        }
-
-        .particle {
-            position: fixed;
-            width: 4px;
-            height: 4px;
-            background: var(--accent);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 0;
-            animation: float 15s infinite;
-            opacity: 0.6;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(100vh) scale(0); opacity: 0; }
-            10% { opacity: 0.6; }
-            90% { opacity: 0.6; }
-            100% { transform: translateY(-100vh) scale(1); opacity: 0; }
-        }
-
-        .plane-container {
+        /* --- Game Area Styles --- */
+        .game-area {
             position: relative;
-            width: 100%;
-            height: 300px;
+            background: radial-gradient(circle at center, #1a0505 0%, #000000 100%);
+            border: 1px solid #333;
+            border-radius: 12px;
+            height: 400px;
             overflow: hidden;
         }
+        
+        /* Canvas */
+        #gameCanvas { width: 100%; height: 100%; }
 
-        .plane-path {
+        /* Overlay */
+        .game-overlay {
             position: absolute;
-            bottom: 50px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
-            animation: pathGrow 3s ease-out forwards;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+        
+        .multiplier {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 5rem;
+            font-weight: 900;
+            color: white;
+            text-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+        }
+        
+        .waiting-anim span {
+            display: inline-block;
+            width: 15px; height: 15px;
+            background: #ff0000;
+            border-radius: 50%;
+            margin: 5px;
+            animation: jump 1.4s infinite ease-in-out both;
+        }
+        .waiting-anim span:nth-child(1) { animation-delay: -0.32s; }
+        .waiting-anim span:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes jump {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
         }
 
-        .plane {
-            position: absolute;
-            bottom: 50px;
-            left: 0;
-            font-size: 3rem;
-            animation: flyUp 3s ease-out forwards;
-            filter: drop-shadow(0 0 20px var(--accent-glow));
-        }
-
-        @keyframes flyUp {
-            0% { left: 10%; bottom: 50px; transform: rotate(-45deg); }
-            100% { left: 80%; bottom: 250px; transform: rotate(-45deg); }
-        }
-
-        @keyframes pathGrow {
-            0% { width: 0; }
-            100% { width: 100%; }
-        }
-
+        /* --- Components --- */
         .card {
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 16px;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
+            border-radius: 8px;
+            padding: 20px;
         }
-
-        .card:hover {
-            border-color: var(--accent);
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px rgba(255, 61, 0, 0.2);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent) 0%, #ff6f00 100%);
+        
+        .btn-main {
+            background: #ff0000;
             color: white;
-            padding: 12px 32px;
-            border-radius: 12px;
-            font-weight: 700;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.2rem;
             border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            font-family: 'Cairo', sans-serif;
-        }
-
-        .btn-primary:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 30px var(--accent-glow);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            color: var(--fg);
-            padding: 12px 32px;
-            border-radius: 12px;
-            font-weight: 600;
-            border: 2px solid var(--border);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-family: 'Cairo', sans-serif;
-        }
-
-        .btn-secondary:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        .input-field {
-            background: var(--bg-secondary);
-            border: 2px solid var(--border);
-            border-radius: 12px;
-            padding: 14px 20px;
-            color: var(--fg);
             width: 100%;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-family: 'Cairo', sans-serif;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-main:hover { background: #cc0000; }
+        
+        .btn-sec {
+            background: #333;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: bold;
+            border: 1px solid #444;
+            width: 100%;
+            cursor: pointer;
         }
 
-        .input-field:focus {
+        .input-box {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+            text-align: center;
+            font-size: 1.2rem;
+            width: 100%;
             outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 20px var(--accent-glow);
         }
+        .input-box:focus { border-color: #ff0000; }
 
-        .multiplier-display {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 4rem;
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--accent), var(--gold));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: pulse 2s ease-in-out infinite;
-        }
+        .screen { display: none; }
+        .screen.active { display: block; }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-
-        .sub-card {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .sub-card.featured {
-            border-color: var(--gold);
-            box-shadow: 0 0 40px rgba(255, 215, 0, 0.2);
-        }
-
-        .sub-card.featured::before {
-            content: 'الأكثر طلباً';
-            position: absolute;
-            top: 20px;
-            left: -30px;
-            background: var(--gold);
-            color: var(--bg);
-            padding: 5px 40px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            transform: rotate(45deg);
-        }
-
-        .screen {
-            display: none;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.5s ease;
-        }
-
-        .screen.active {
-            display: block;
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-secondary);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--accent);
+        .history-badge {
+            padding: 4px 8px;
             border-radius: 4px;
+            font-size: 0.8rem;
+            margin: 2px;
+            font-weight: bold;
         }
+        .h-low { background: rgba(255,0,0,0.2); color: #ff6666; border: 1px solid rgba(255,0,0,0.3); }
+        .h-mid { background: rgba(0,100,255,0.2); color: #66aaff; border: 1px solid rgba(0,100,255,0.3); }
+        .h-high { background: rgba(150,0,255,0.2); color: #bb88ff; border: 1px solid rgba(150,0,255,0.3); }
 
-        .history-item {
+        .live-item {
             display: flex;
             justify-content: space-between;
-            padding: 12px 16px;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            margin-bottom: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .prediction-result {
-            animation: revealResult 0.5s ease forwards;
-        }
-
-        @keyframes revealResult {
-            0% { transform: scale(0.8); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .countdown {
-            font-family: 'Orbitron', sans-serif;
-        }
-
-        .stat-bar {
-            height: 8px;
-            background: var(--bg-secondary);
+            padding: 8px;
+            background: rgba(0,0,0,0.3);
             border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .stat-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--accent), var(--gold));
-            border-radius: 4px;
-            transition: width 1s ease;
-        }
-        
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-            z-index: 50;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-        
-        .modal-overlay.show {
-            display: flex;
-        }
-        
-        /* Success message style */
-        .success-msg {
-            background: rgba(0, 230, 118, 0.2);
-            border: 1px solid #00e676;
-            color: #00e676;
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-            margin-top: 10px;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
-    <!-- Animated Background -->
-    <div class="bg-animated"></div>
-    <div class="grid-overlay"></div>
-    
-    <!-- Particles -->
-    <div id="particles"></div>
 
-    <!-- Login Screen -->
+    <!-- 1. LOGIN SCREEN -->
     <div id="loginScreen" class="screen active">
         <div class="min-h-screen flex items-center justify-center p-4">
-            <div class="w-full max-w-md">
-                <!-- Logo -->
-                <div class="text-center mb-8">
-                    <div class="inline-block mb-4">
-                        <svg width="80" height="80" viewBox="0 0 100 100" class="mx-auto">
-                            <defs>
-                                <linearGradient id="planeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" style="stop-color:#ff3d00"/>
-                                    <stop offset="100%" style="stop-color:#ffd700"/>
-                                </linearGradient>
-                            </defs>
-                            <path d="M50 10 L90 50 L70 50 L70 90 L30 90 L30 50 L10 50 Z" fill="url(#planeGrad)" transform="rotate(-45 50 50)"/>
-                        </svg>
-                    </div>
-                    <h1 class="font-display text-4xl font-bold mb-2">AVIATOR PRO</h1>
-                    <p class="text-gray-400">نظام التخمين الذكي المتقدم</p>
+            <div class="w-full max-w-md text-center">
+                <div class="w-24 h-24 mx-auto mb-6 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-900/50">
+                    <svg width="50" height="50" viewBox="0 0 24 24" fill="white"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
                 </div>
+                <h1 class="font-display text-4xl font-bold mb-2">AVIATOR PRO</h1>
+                <p class="text-gray-500 mb-8">أداة التوقع الذكي</p>
 
-                <!-- Login Card -->
-                <div class="card p-8">
-                    <h2 class="text-2xl font-bold mb-6 text-center">تسجيل الدخول</h2>
-                    
-                    <form id="loginForm" class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-medium mb-2 text-gray-300">مفتاح الدخول</label>
-                            <input type="text" id="accessKey" class="input-field" placeholder="أدخل مفتاح الدخول" required autocomplete="off">
-                        </div>
-                        <button type="submit" class="btn-primary w-full text-lg mt-6">دخول</button>
+                <div class="card">
+                    <form id="loginForm">
+                        <label class="block text-sm text-gray-400 mb-2">أدخل مفتاح الدخول</label>
+                        <input type="text" id="keyInput" class="input-box mb-4" placeholder="XXXX-XXXX-XXXX" autocomplete="off">
+                        <button type="submit" class="btn-main">دخول</button>
                     </form>
-
-                    <div class="mt-6 text-center">
-                        <p class="text-gray-400 mb-4">ليس لديك مفتاح؟</p>
-                        <button onclick="showScreen('subscriptionScreen')" class="btn-secondary w-full">احصل على اشتراك</button>
-                    </div>
-
-                    <div id="loginError" class="mt-4 text-red-500 text-center hidden"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Subscription Screen -->
-    <div id="subscriptionScreen" class="screen">
-        <div class="min-h-screen p-4 py-12">
-            <div class="max-w-6xl mx-auto">
-                <!-- Header -->
-                <div class="text-center mb-12">
-                    <h1 class="font-display text-4xl font-bold mb-4">خطط الاشتراك</h1>
-                    <p class="text-gray-400 text-lg">اختر الخطة المناسبة لك وابدأ التخمين الذكي</p>
-                </div>
-
-                <!-- Back Button -->
-                <button onclick="showScreen('loginScreen')" class="btn-secondary mb-8">
-                    <span class="flex items-center gap-2">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M19 12H5M12 19l-7-7 7-7"/>
-                        </svg>
-                        العودة
-                    </span>
-                </button>
-
-                <!-- Plans -->
-                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <!-- Daily -->
-                    <div class="card sub-card p-6">
-                        <div class="text-center mb-6">
-                            <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                                    <rect x="3" y="4" width="18" height="18" rx="2"/>
-                                    <line x1="16" y1="2" x2="16" y2="6"/>
-                                    <line x1="8" y1="2" x2="8" y2="6"/>
-                                    <line x1="3" y1="10" x2="21" y2="10"/>
-                                </svg>
-                            </div>
-                            <h3 class="text-xl font-bold">يوم واحد</h3>
-                        </div>
-                        <div class="text-center mb-6">
-                            <span class="font-display text-4xl font-bold">$5</span>
-                        </div>
-                        <button onclick="selectPlan('daily')" class="btn-secondary w-full">اشترك الآن</button>
-                    </div>
-
-                    <!-- Two Days -->
-                    <div class="card sub-card p-6">
-                        <div class="text-center mb-6">
-                            <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                                    <rect x="3" y="4" width="18" height="18" rx="2"/>
-                                    <line x1="16" y1="2" x2="16" y2="6"/>
-                                    <line x1="8" y1="2" x2="8" y2="6"/>
-                                    <line x1="3" y1="10" x2="21" y2="10"/>
-                                </svg>
-                            </div>
-                            <h3 class="text-xl font-bold">يومين</h3>
-                        </div>
-                        <div class="text-center mb-6">
-                            <span class="font-display text-4xl font-bold">$8</span>
-                        </div>
-                        <button onclick="selectPlan('twoDays')" class="btn-secondary w-full">اشترك الآن</button>
-                    </div>
-
-                    <!-- Weekly - Featured -->
-                    <div class="card sub-card featured p-6">
-                        <div class="text-center mb-6">
-                            <div class="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                                    <rect x="3" y="4" width="18" height="18" rx="2"/>
-                                    <line x1="16" y1="2" x2="16" y2="6"/>
-                                    <line x1="8" y1="2" x2="8" y2="6"/>
-                                    <line x1="3" y1="10" x2="21" y2="10"/>
-                                </svg>
-                            </div>
-                            <h3 class="text-xl font-bold">أسبوع</h3>
-                        </div>
-                        <div class="text-center mb-6">
-                            <span class="font-display text-4xl font-bold text-amber-500">$25</span>
-                        </div>
-                        <button onclick="selectPlan('weekly')" class="btn-primary w-full">اشترك الآن</button>
-                    </div>
-
-                    <!-- Monthly -->
-                    <div class="card sub-card p-6">
-                        <div class="text-center mb-6">
-                            <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                                    <rect x="3" y="4" width="18" height="18" rx="2"/>
-                                    <line x1="16" y1="2" x2="16" y2="6"/>
-                                    <line x1="8" y1="2" x2="8" y2="6"/>
-                                    <line x1="3" y1="10" x2="21" y2="10"/>
-                                </svg>
-                            </div>
-                            <h3 class="text-xl font-bold">شهر</h3>
-                        </div>
-                        <div class="text-center mb-6">
-                            <span class="font-display text-4xl font-bold text-emerald-500">$70</span>
-                        </div>
-                        <button onclick="selectPlan('monthly')" class="btn-secondary w-full">اشترك الآن</button>
+                    <p id="errorMsg" class="text-red-500 mt-4 hidden">المفتاح غير صحيح</p>
+                    <div class="mt-6 pt-4 border-t border-gray-800">
+                        <button id="goToSubBtn" class="text-gray-400 text-sm hover:text-white underline">ليس لديك مفتاح؟ اضغط هنا</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Payment Modal -->
-    <div id="paymentModal" class="modal-overlay">
-        <div class="card p-8 max-w-md w-full relative">
-            <button onclick="closePaymentModal()" class="absolute top-4 left-4 text-gray-400 hover:text-white">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
-            </button>
-            <h3 class="text-2xl font-bold mb-6 text-center">إتمام الاشتراك</h3>
-            <div id="paymentDetails" class="space-y-4"></div>
-            <form id="paymentForm" class="space-y-4 mt-6">
-                <div>
-                    <label class="block text-sm font-medium mb-2 text-gray-300">رقم الهاتف</label>
-                    <input type="tel" class="input-field" placeholder="أدخل رقم هاتفك" required>
+    <!-- 2. SUBSCRIPTION SCREEN -->
+    <div id="subScreen" class="screen">
+        <div class="min-h-screen p-4 py-12 bg-black">
+            <div class="max-w-4xl mx-auto">
+                <button id="backToLogin" class="text-gray-400 mb-8 hover:text-white">&larr; رجوع</button>
+                <h1 class="text-3xl font-bold mb-8 text-center">خطط الاشتراك</h1>
+                
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div class="card text-center">
+                        <h3 class="text-xl mb-2">يوم واحد</h3>
+                        <p class="text-3xl font-bold mb-4">$5</p>
+                        <button onclick="alert('للشراء تواصل معنا. مفتاح تجريبي: DEMO-WEEK-2024')" class="btn-sec">اشترك</button>
+                    </div>
+                    <div class="card border-red-500 text-center relative">
+                        <span class="absolute -top-3 left-4 bg-red-600 text-xs px-2 py-1 rounded">الأكثر مبيعاً</span>
+                        <h3 class="text-xl mb-2">أسبوع</h3>
+                        <p class="text-3xl font-bold mb-4">$25</p>
+                        <button onclick="alert('للشراء تواصل معنا. مفتاح تجريبي: DEMO-WEEK-2024')" class="btn-main">اشترك</button>
+                    </div>
+                    <div class="card text-center">
+                        <h3 class="text-xl mb-2">شهر</h3>
+                        <p class="text-3xl font-bold mb-4">$70</p>
+                        <button onclick="alert('للشراء تواصل معنا. مفتاح تجريبي: DEMO-WEEK-2024')" class="btn-sec">اشترك</button>
+                    </div>
                 </div>
-                <button type="submit" class="btn-primary w-full">تأكيد الدفع</button>
-            </form>
+            </div>
         </div>
     </div>
 
-    <!-- Main Dashboard -->
-    <div id="dashboardScreen" class="screen">
-        <!-- Header -->
-        <header class="sticky top-0 z-40 bg-black/50 backdrop-blur-xl border-b border-white/10">
-            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                    <svg width="40" height="40" viewBox="0 0 100 100">
-                        <defs>
-                            <linearGradient id="planeGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" style="stop-color:#ff3d00"/>
-                                <stop offset="100%" style="stop-color:#ffd700"/>
-                            </linearGradient>
-                        </defs>
-                        <path d="M50 10 L90 50 L70 50 L70 90 L30 90 L30 50 L10 50 Z" fill="url(#planeGrad2)" transform="rotate(-45 50 50)"/>
-                    </svg>
-                    <span class="font-display text-xl font-bold hidden sm:block">AVIATOR PRO</span>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="text-left">
-                        <p class="text-sm text-gray-400">ينتهي اشتراكك بعد</p>
-                        <p id="expiryDate" class="font-bold text-amber-500 countdown"></p>
-                    </div>
-                    <button onclick="logout()" class="btn-secondary text-sm py-2 px-4">خروج</button>
-                </div>
+    <!-- 3. DASHBOARD -->
+    <div id="dashScreen" class="screen">
+        <header class="bg-black border-b border-gray-800 p-4 flex justify-between items-center sticky top-0 z-20">
+            <div class="flex items-center gap-2">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#ff0000"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+                <span class="font-bold">AVIATOR PRO</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="expDate" class="text-xs bg-gray-800 px-3 py-1 rounded-full"></span>
+                <button id="logoutBtn" class="text-red-500 text-sm font-bold">خروج</button>
             </div>
         </header>
 
-        <!-- Main Content -->
-        <main class="max-w-7xl mx-auto px-4 py-8">
-            <!-- Stats Row -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div class="card p-4 text-center">
-                    <p class="text-gray-400 text-sm mb-1">التخمينات اليوم</p>
-                    <p class="font-display text-2xl font-bold text-amber-500" id="todayPredictions">0</p>
-                </div>
-                <div class="card p-4 text-center">
-                    <p class="text-gray-400 text-sm mb-1">نسبة النجاح</p>
-                    <p class="font-display text-2xl font-bold text-emerald-500" id="successRate">94%</p>
-                </div>
-                <div class="card p-4 text-center">
-                    <p class="text-gray-400 text-sm mb-1">أعلى مضاعف</p>
-                    <p class="font-display text-2xl font-bold text-purple-500" id="highestMulti">12.5x</p>
-                </div>
-                <div class="card p-4 text-center">
-                    <p class="text-gray-400 text-sm mb-1">المستخدمين النشطين</p>
-                    <p class="font-display text-2xl font-bold" id="activeUsers">1,247</p>
-                </div>
-            </div>
-
-            <!-- Main Prediction Area -->
-            <div class="grid lg:grid-cols-3 gap-6">
-                <!-- Prediction Panel -->
-                <div class="lg:col-span-2">
-                    <div class="card p-6">
-                        <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M12 6v6l4 2"/>
-                            </svg>
-                            التوقع التالي
-                        </h2>
-
-                        <!-- Plane Animation -->
-                        <div class="plane-container mb-6 rounded-xl bg-black/30" id="planeContainer">
-                            <div class="plane" id="plane">
-                                <svg width="60" height="60" viewBox="0 0 100 100">
-                                    <path d="M50 10 L90 50 L70 50 L70 90 L30 90 L30 50 L10 50 Z" fill="#ff3d00"/>
-                                </svg>
-                            </div>
-                            <div class="plane-path"></div>
-                        </div>
-
-                        <!-- Prediction Display -->
-                        <div class="text-center mb-8">
-                            <p class="text-gray-400 mb-2">المضاعف المتوقع</p>
-                            <div class="multiplier-display" id="predictedMultiplier">?.??x</div>
-                            <p class="text-gray-400 mt-2">النهاية المتوقعة</p>
-                            <p class="font-display text-2xl font-bold mt-1" id="predictedCrash">?.??x</p>
-                        </div>
-
-                        <!-- Confidence -->
-                        <div class="mb-6">
-                            <div class="flex justify-between mb-2">
-                                <span class="text-gray-400">نسبة الثقة</span>
-                                <span class="font-bold text-emerald-500" id="confidence">94%</span>
-                            </div>
-                            <div class="stat-bar">
-                                <div class="stat-bar-fill" style="width: 94%"></div>
-                            </div>
-                        </div>
-
-                        <!-- Action Buttons -->
-                        <div class="flex flex-col sm:flex-row gap-4">
-                            <button onclick="generatePrediction()" class="btn-primary flex-1 flex items-center justify-center gap-2">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M23 4v6h-6M1 20v-6h6"/>
-                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
-                                </svg>
-                                توليد توقع جديد
-                            </button>
-                            <button onclick="copyPrediction()" class="btn-secondary flex-1 flex items-center justify-center gap-2">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <rect x="9" y="9" width="13" height="13" rx="2"/>
-                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                                </svg>
-                                نسخ التوقع
-                            </button>
+        <main class="max-w-5xl mx-auto p-4">
+            <div class="grid lg:grid-cols-3 gap-4">
+                <!-- Left: Game & Controls -->
+                <div class="lg:col-span-2 space-y-4">
+                    <!-- Game Visualization -->
+                    <div class="game-area">
+                        <canvas id="gameCanvas"></canvas>
+                        <div class="game-overlay">
+                            <div id="statusText" class="text-gray-400 mb-2">اضغط "بدء التوقع"</div>
+                            <div id="multiplierBox" class="multiplier">1.00x</div>
+                            <div id="waitingDots" class="waiting-anim hidden"><span></span><span></span><span></span></div>
                         </div>
                     </div>
 
-                    <!-- Recent Predictions -->
-                    <div class="card p-6 mt-6">
-                        <h3 class="text-lg font-bold mb-4">التوقعات الأخيرة</h3>
-                        <div id="recentPredictions" class="space-y-2">
-                            <p class="text-gray-400 text-center">لا توجد توقعات بعد</p>
-                        </div>
+                    <!-- Buttons -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <button id="startBtn" class="btn-main">بدء التوقع</button>
+                        <button id="copyBtn" class="btn-sec">نسخ النتيجة</button>
+                    </div>
+
+                    <!-- Result -->
+                    <div id="resultBox" class="card hidden text-center border-red-500">
+                        <p class="text-gray-400 text-sm">توقع الجولة القادمة</p>
+                        <p id="finalVal" class="font-display text-4xl text-white mt-2">0.00x</p>
                     </div>
                 </div>
 
-                <!-- Sidebar -->
-                <div class="space-y-6">
+                <!-- Right: Live & Stats -->
+                <div class="space-y-4">
                     <!-- Live Feed -->
-                    <div class="card p-6">
-                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                            <span class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
-                            مباشر
+                    <div class="card">
+                        <h3 class="font-bold mb-3 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                            مباشر (Live)
                         </h3>
-                        <div id="liveFeed" class="space-y-3 max-h-64 overflow-y-auto"></div>
+                        <div id="liveFeed" class="space-y-1 h-64 overflow-y-auto"></div>
                     </div>
 
-                    <!-- Quick Stats -->
-                    <div class="card p-6">
-                        <h3 class="text-lg font-bold mb-4">إحصائيات سريعة</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <div class="flex justify-between mb-1">
-                                    <span class="text-gray-400">1x - 2x</span>
-                                    <span>45%</span>
-                                </div>
-                                <div class="stat-bar">
-                                    <div class="stat-bar-fill" style="width: 45%"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between mb-1">
-                                    <span class="text-gray-400">2x - 5x</span>
-                                    <span>35%</span>
-                                </div>
-                                <div class="stat-bar">
-                                    <div class="stat-bar-fill" style="width: 35%"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between mb-1">
-                                    <span class="text-gray-400">5x - 10x</span>
-                                    <span>15%</span>
-                                </div>
-                                <div class="stat-bar">
-                                    <div class="stat-bar-fill" style="width: 15%"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between mb-1">
-                                    <span class="text-gray-400">10x+</span>
-                                    <span>5%</span>
-                                </div>
-                                <div class="stat-bar">
-                                    <div class="stat-bar-fill" style="width: 5%"></div>
-                                </div>
-                            </div>
-                        </div>
+                    <!-- History -->
+                    <div class="card">
+                        <h3 class="font-bold mb-3">سجل الجولات</h3>
+                        <div id="historyBox" class="flex flex-wrap gap-1"></div>
                     </div>
                 </div>
             </div>
@@ -676,323 +259,286 @@
     </div>
 
     <script>
-        // Initialize particles
-        (function createParticles() {
-            const container = document.getElementById('particles');
-            if (!container) return;
-            for (let i = 0; i < 20; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = Math.random() * 100 + '%';
-                particle.style.animationDelay = Math.random() * 15 + 's';
-                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
-                container.appendChild(particle);
+        // --- SYSTEM CONFIGURATION ---
+        const APP_KEYS = {
+            'DEMO-DAY-2024': 1,
+            'DEMO-2DAYS-2024': 2,
+            'DEMO-WEEK-2024': 7,
+            'DEMO-MONTH-2024': 30
+        };
+
+        const names = ['أحمد', 'محمد', 'سعيد', 'خالد', 'علي', 'فهد', 'سعود', 'عمر', 'يزيد', 'راشد'];
+        
+        // --- STATE VARIABLES ---
+        let isAnimating = false;
+        let animFrameId = null;
+        let currentData = { x: 0, y: 0, target: 2.00 };
+        
+        // --- DOM ELEMENTS ---
+        const screens = {
+            login: document.getElementById('loginScreen'),
+            sub: document.getElementById('subScreen'),
+            dash: document.getElementById('dashScreen')
+        };
+
+        const els = {
+            keyInput: document.getElementById('keyInput'),
+            loginErr: document.getElementById('errorMsg'),
+            expDate: document.getElementById('expDate'),
+            canvas: document.getElementById('gameCanvas'),
+            ctx: null,
+            statusText: document.getElementById('statusText'),
+            multiplierBox: document.getElementById('multiplierBox'),
+            waitingDots: document.getElementById('waitingDots'),
+            resultBox: document.getElementById('resultBox'),
+            finalVal: document.getElementById('finalVal'),
+            liveFeed: document.getElementById('liveFeed'),
+            historyBox: document.getElementById('historyBox')
+        };
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            // Set Context
+            els.ctx = els.canvas.getContext('2d');
+            
+            // Check Session
+            const exp = localStorage.getItem('avi_exp');
+            if (exp && new Date(exp) > new Date()) {
+                setupDashboard(exp);
             }
-        })();
-
-        // Data Store - KEYS ARE CASE INSENSITIVE NOW
-        const validKeys = {
-            'demo-day-2024': { plan: 'daily', expiry: 1 },
-            'demo-2days-2024': { plan: 'twoDays', expiry: 2 },
-            'demo-week-2024': { plan: 'weekly', expiry: 7 },
-            'demo-month-2024': { plan: 'monthly', expiry: 30 }
+            
+            // Attach Event Listeners
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            document.getElementById('goToSubBtn').addEventListener('click', () => switchScreen('sub'));
+            document.getElementById('backToLogin').addEventListener('click', () => switchScreen('login'));
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+            document.getElementById('startBtn').addEventListener('click', startPrediction);
+            document.getElementById('copyBtn').addEventListener('click', copyResult);
         };
 
-        const planPrices = {
-            daily: 5,
-            twoDays: 8,
-            weekly: 25,
-            monthly: 70
-        };
-
-        const planNames = {
-            daily: 'يوم واحد',
-            twoDays: 'يومين',
-            weekly: 'أسبوع',
-            monthly: 'شهر'
-        };
-
-        let currentUser = null;
-        let predictions = [];
-        let predictionCount = 0;
-        let liveFeedInterval = null;
-
-        // Screen Management
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(screen => {
-                screen.classList.remove('active');
-            });
-            setTimeout(() => {
-                const targetScreen = document.getElementById(screenId);
-                if (targetScreen) {
-                    targetScreen.classList.add('active');
-                }
-            }, 50);
+        function switchScreen(name) {
+            Object.values(screens).forEach(s => s.classList.remove('active'));
+            screens[name].classList.add('active');
         }
 
-        // Login Handler - FIXED
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        // --- AUTH HANDLERS ---
+        function handleLogin(e) {
+            e.preventDefault(); // IMPORTANT: Prevents page refresh
+            const key = els.keyInput.value.trim().toUpperCase();
             
-            // 1. Get value and trim spaces
-            let keyRaw = document.getElementById('accessKey').value;
-            let key = keyRaw.trim().toLowerCase(); // Remove spaces and make lowercase
-            
-            const errorDiv = document.getElementById('loginError');
-
-            // 2. Check key
-            if (validKeys[key]) {
-                const keyData = validKeys[key];
-                const expiryDate = new Date();
-                expiryDate.setDate(expiryDate.getDate() + keyData.expiry);
-
-                currentUser = {
-                    plan: keyData.plan,
-                    expiry: expiryDate.toISOString()
-                };
-
-                // 3. Save to localStorage safely
-                try {
-                    localStorage.setItem('aviatorUser', JSON.stringify(currentUser));
-                } catch (e) {
-                    console.log("LocalStorage not available, proceeding with session only.");
-                }
+            if (APP_KEYS[key]) {
+                els.loginErr.classList.add('hidden');
+                const days = APP_KEYS[key];
+                const expDate = new Date();
+                expDate.setDate(expDate.getDate() + days);
                 
-                // 4. Show Success
-                errorDiv.classList.add('hidden');
-                initDashboard();
-                showScreen('dashboardScreen');
-
+                localStorage.setItem('avi_exp', expDate.toISOString());
+                setupDashboard(expDate.toISOString());
             } else {
-                // Show Error
-                errorDiv.textContent = 'مفتاح الدخول غير صحيح. تأكد من النسخ الصحيح.';
-                errorDiv.classList.remove('hidden');
+                els.loginErr.textContent = 'المفتاح غير صحيح';
+                els.loginErr.classList.remove('hidden');
             }
-        });
+        }
 
-        // Initialize Dashboard
-        function initDashboard() {
-            const expiryDateEl = document.getElementById('expiryDate');
-            const now = new Date();
-            const expiry = new Date(currentUser.expiry);
-            const diff = expiry - now;
+        function handleLogout() {
+            localStorage.removeItem('avi_exp');
+            els.keyInput.value = '';
+            switchScreen('login');
+            if(animFrameId) cancelAnimationFrame(animFrameId);
+            isAnimating = false;
+        }
+
+        function setupDashboard(exp) {
+            const diff = new Date(exp) - new Date();
             const days = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+            els.expDate.textContent = days + ' يوم متبقي';
             
-            if (expiryDateEl) {
-                expiryDateEl.textContent = days + ' يوم';
-            }
-
-            loadRecentPredictions();
+            switchScreen('dash');
+            resetCanvas();
+            generateFakeHistory();
             startLiveFeed();
         }
 
-        // Generate Prediction
-        function generatePrediction() {
-            const plane = document.getElementById('plane');
+        // --- GAME LOGIC ---
+        function startPrediction() {
+            if (isAnimating) return;
+            isAnimating = true;
             
-            plane.style.animation = 'none';
-            void plane.offsetHeight; 
-            plane.style.animation = 'flyUp 3s ease-out forwards';
-
-            const multiplier = (Math.random() * 15 + 1).toFixed(2);
-            const crash = (Math.random() * parseFloat(multiplier) + 1).toFixed(2);
-            const confidence = Math.floor(Math.random() * 20 + 80);
-
-            predictionCount++;
-            document.getElementById('todayPredictions').textContent = predictionCount;
-
-            setTimeout(() => {
-                document.getElementById('predictedMultiplier').textContent = multiplier + 'x';
-                document.getElementById('predictedCrash').textContent = crash + 'x';
-                document.getElementById('confidence').textContent = confidence + '%';
-                
-                const barFill = document.querySelector('.stat-bar-fill');
-                if (barFill) {
-                    barFill.style.width = confidence + '%';
-                }
-            }, 1000);
-
-            const prediction = {
-                time: new Date().toLocaleTimeString('ar-EG'),
-                multiplier: multiplier,
-                crash: crash,
-                confidence: confidence
-            };
-            predictions.unshift(prediction);
-            if (predictions.length > 10) predictions.pop();
-            loadRecentPredictions();
+            // UI Setup
+            els.resultBox.classList.add('hidden');
+            els.waitingDots.classList.add('hidden');
+            els.statusText.textContent = 'جاري الطيران...';
+            els.multiplierBox.style.color = '#00ff00'; // Green
+            
+            // Canvas Setup
+            resizeCanvas();
+            
+            // Generate Smart Prediction
+            let r = Math.random();
+            let target;
+            if (r < 0.7) target = (Math.random() * 2 + 1.1).toFixed(2); // 1.1 - 3.1
+            else if (r < 0.9) target = (Math.random() * 3 + 3).toFixed(2); // 3 - 6
+            else target = (Math.random() * 10 + 6).toFixed(2); // 6 - 16
+            
+            currentData = { x: 50, y: 350, target: parseFloat(target), points: [] };
+            
+            animateGame();
         }
 
-        // Load Recent Predictions
-        function loadRecentPredictions() {
-            const container = document.getElementById('recentPredictions');
-            if (!container) return;
+        function animateGame() {
+            if (!isAnimating) return;
             
-            if (predictions.length === 0) {
-                container.innerHTML = '<p class="text-gray-400 text-center">لا توجد توقعات بعد</p>';
+            const ctx = els.ctx;
+            const can = els.canvas;
+            
+            // Clear
+            ctx.clearRect(0, 0, can.width, can.height);
+            
+            // Grid
+            ctx.strokeStyle = '#222';
+            ctx.lineWidth = 1;
+            for(let i=0; i<can.width; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i, can.height); ctx.stroke(); }
+            for(let i=0; i<can.height; i+=50) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(can.width, i); ctx.stroke(); }
+
+            // Update Position
+            currentData.x += 3;
+            let mult = currentData.x / 50; // Simple multiplier calculation
+            currentData.y = 350 - Math.pow(mult, 1.5) * 30; // Exponential rise
+            
+            if (currentData.y < 10) currentData.y = 10;
+            
+            currentData.points.push({x: currentData.x, y: currentData.y});
+            
+            // Draw Line
+            ctx.beginPath();
+            ctx.moveTo(50, 350);
+            for (let p of currentData.points) {
+                ctx.lineTo(p.x, p.y);
+            }
+            ctx.strokeStyle = '#ff0000';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            
+            // Draw Fill
+            ctx.lineTo(currentData.x, 350);
+            ctx.lineTo(50, 350);
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.2)';
+            ctx.fill();
+            
+            // Draw Plane
+            drawPlane(ctx, currentData.x, currentData.y);
+            
+            // Update Text
+            els.multiplierBox.textContent = mult.toFixed(2) + 'x';
+            
+            // Check if reached target
+            if (mult >= currentData.target) {
+                endGame(currentData.target);
                 return;
             }
-
-            container.innerHTML = predictions.map(p => `
-                <div class="history-item prediction-result">
-                    <span class="text-gray-400">${p.time}</span>
-                    <span class="font-bold">${p.multiplier}x</span>
-                    <span class="text-emerald-500">${p.confidence}%</span>
-                </div>
-            `).join('');
+            
+            animFrameId = requestAnimationFrame(animateGame);
+        }
+        
+        function drawPlane(ctx, x, y) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(-Math.PI/4); // 45 degree
+            
+            ctx.beginPath();
+            ctx.fillStyle = '#ff0000';
+            ctx.moveTo(0, -15);
+            ctx.lineTo(15, 15);
+            ctx.lineTo(0, 8);
+            ctx.lineTo(-15, 15);
+            ctx.closePath();
+            ctx.fill();
+            
+            ctx.shadowColor = '#ff0000';
+            ctx.shadowBlur = 20;
+            ctx.fill();
+            ctx.restore();
         }
 
-        // Live Feed
+        function endGame(result) {
+            isAnimating = false;
+            
+            els.multiplierBox.textContent = result + 'x';
+            els.multiplierBox.style.color = 'white';
+            els.statusText.textContent = 'انتهت الجولة!';
+            els.finalVal.textContent = result + 'x';
+            els.resultBox.classList.remove('hidden');
+            
+            // Add History
+            addHistoryItem(result);
+            
+            // Wait for next
+            setTimeout(() => {
+                els.multiplierBox.textContent = '1.00x';
+                els.statusText.textContent = 'اضغط "بدء التوقع"';
+                resetCanvas();
+            }, 3000);
+        }
+        
+        function resetCanvas() {
+            const ctx = els.ctx;
+            const can = els.canvas;
+            ctx.clearRect(0, 0, can.width, can.height);
+            ctx.strokeStyle = '#222';
+            ctx.lineWidth = 1;
+            for(let i=0; i<can.width; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i, can.height); ctx.stroke(); }
+            for(let i=0; i<can.height; i+=50) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(can.width, i); ctx.stroke(); }
+        }
+
+        function resizeCanvas() {
+            const rect = els.canvas.parentElement.getBoundingClientRect();
+            els.canvas.width = rect.width;
+            els.canvas.height = 400;
+        }
+
+        // --- HELPERS ---
+        function copyResult() {
+            const t = els.finalVal.textContent;
+            if(t && t !== '0.00x') {
+                navigator.clipboard.writeText('Aviator Prediction: ' + t);
+                alert('تم النسخ: ' + t);
+            } else {
+                alert('لا توجد نتيجة بعد');
+            }
+        }
+
         function startLiveFeed() {
-            const container = document.getElementById('liveFeed');
-            if (!container) return;
-            
-            const names = ['أحمد', 'محمد', 'علي', 'خالد', 'سعود', 'فهد', 'عمر', 'يزيد'];
-            
-            function addFeedItem() {
+            setInterval(() => {
                 const name = names[Math.floor(Math.random() * names.length)];
-                const multi = (Math.random() * 20 + 1).toFixed(2);
+                const val = (Math.random() * 10 + 1).toFixed(2);
                 const won = Math.random() > 0.3;
                 
-                const item = document.createElement('div');
-                item.className = 'flex justify-between items-center text-sm prediction-result';
-                item.innerHTML = `
-                    <span>${name}</span>
-                    <span class="${won ? 'text-emerald-500' : 'text-red-500'}">${multi}x</span>
-                `;
+                const div = document.createElement('div');
+                div.className = 'live-item';
+                div.innerHTML = `<span>${name}</span><span class="${won ? 'text-green-500' : 'text-red-500'}">${val}x</span>`;
                 
-                container.insertBefore(item, container.firstChild);
-                if (container.children.length > 10) {
-                    container.removeChild(container.lastChild);
-                }
-            }
-
-            for (let i = 0; i < 5; i++) {
-                addFeedItem();
-            }
-
-            if (liveFeedInterval) clearInterval(liveFeedInterval);
-            liveFeedInterval = setInterval(addFeedItem, 3000);
+                els.liveFeed.insertBefore(div, els.liveFeed.firstChild);
+                if(els.liveFeed.children.length > 15) els.liveFeed.lastChild.remove();
+            }, 2000);
         }
-
-        // Copy Prediction
-        function copyPrediction() {
-            const multiEl = document.getElementById('predictedMultiplier');
-            const crashEl = document.getElementById('predictedCrash');
-            const confEl = document.getElementById('confidence');
-            
-            if (!multiEl || !crashEl || !confEl) return;
-
-            const multi = multiEl.textContent;
-            const crash = crashEl.textContent;
-            const conf = confEl.textContent;
-            
-            const text = `Aviator Pro Prediction\nMultiplier: ${multi}\nCrash Point: ${crash}\nConfidence: ${conf}`;
-            
-            navigator.clipboard.writeText(text).then(() => {
-                alert('تم نسخ التوقع بنجاح!');
-            }).catch(() => {
-                const textarea = document.createElement('textarea');
-                textarea.value = text;
-                document.body.appendChild(textarea);
-                textarea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textarea);
-                alert('تم نسخ التوقع بنجاح!');
-            });
-        }
-
-        // Subscription Selection
-        function selectPlan(plan) {
-            const modal = document.getElementById('paymentModal');
-            const details = document.getElementById('paymentDetails');
-            
-            if (!modal || !details) return;
-
-            details.innerHTML = `
-                <div class="bg-black/30 p-4 rounded-xl">
-                    <div class="flex justify-between mb-2">
-                        <span class="text-gray-400">الخطة</span>
-                        <span class="font-bold">${planNames[plan]}</span>
-                    </div>
-                    <div class="flex justify-between mb-2">
-                        <span class="text-gray-400">السعر</span>
-                        <span class="font-bold text-amber-500">$${planPrices[plan]}</span>
-                    </div>
-                </div>
-            `;
-            
-            modal.classList.add('show');
-            modal.dataset.selectedPlan = plan;
-        }
-
-        // Close Payment Modal
-        function closePaymentModal() {
-            const modal = document.getElementById('paymentModal');
-            if (modal) {
-                modal.classList.remove('show');
+        
+        function generateFakeHistory() {
+            els.historyBox.innerHTML = '';
+            for(let i=0; i<10; i++) {
+                let v = (Math.random() * 7 + 1).toFixed(2);
+                addHistoryItem(v, true);
             }
         }
-
-        // Payment Form Handler
-        document.getElementById('paymentForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const modal = document.getElementById('paymentModal');
-            if (!modal) return;
-            
-            const plan = modal.dataset.selectedPlan;
-            
-            const keyMap = {
-                daily: 'DEMO-DAY-2024',
-                twoDays: 'DEMO-2DAYS-2024',
-                weekly: 'DEMO-WEEK-2024',
-                monthly: 'DEMO-MONTH-2024'
-            };
-            
-            alert('تم الاشتراك بنجاح!\nمفتاح الدخول الخاص بك: ' + keyMap[plkeyMap[plan]]);
-            closePaymentModal();
-            showScreen('loginScreen');
-        });
-
-        // Logout
-        function logout() {
-            if (liveFeedInterval) {
-                clearInterval(liveFeedInterval);
-            }
-            try {
-                localStorage.removeItem('aviatorUser');
-            } catch(e) {}
-            currentUser = null;
-            predictions = [];
-            predictionCount = 0;
-            showScreen('loginScreen');
+        
+        function addHistoryItem(v, silent=false) {
+            let cls = v < 2 ? 'h-low' : (v < 5 ? 'h-mid' : 'h-high');
+            let sp = document.createElement('span');
+            sp.className = 'history-badge ' + cls;
+            sp.textContent = v + 'x';
+            els.historyBox.insertBefore(sp, els.historyBox.firstChild);
+            if(els.historyBox.children.length > 20) els.historyBox.lastChild.remove();
         }
 
-        // Check for existing session on load
-        document.addEventListener('DOMContentLoaded', function() {
-            const savedUser = localStorage.getItem('aviatorUser');
-            if (savedUser) {
-                try {
-                    currentUser = JSON.parse(savedUser);
-                    const expiry = new Date(currentUser.expiry);
-                    if (expiry > new Date()) {
-                        initDashboard();
-                        showScreen('dashboardScreen');
-                    } else {
-                        localStorage.removeItem('aviatorUser');
-                    }
-                } catch (e) {
-                    localStorage.removeItem('aviatorUser');
-                }
-            }
-        });
-
-        // Keyboard accessibility
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closePaymentModal();
-            }
-        });
     </script>
 </body>
 </html>
