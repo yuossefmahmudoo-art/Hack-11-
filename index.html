@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aviator Pro - Premium Version</title>
+    <title>طيارة ✈️ - المحترفون</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #0f0f0f;
-            --accent: #ff0000;
-            --card: #1a1a1a;
-            --border: #333333;
+            --bg: #050505;
+            --accent: #e60000;
+            --card: #0f0f0f;
+            --border: #1a1a1a;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -19,19 +19,53 @@
             background: var(--bg);
             color: white;
             min-height: 100vh;
+            overflow-x: hidden;
         }
         .font-display { font-family: 'Orbitron', sans-serif; }
 
-        /* Game Area */
+        /* --- LOADING SCREEN --- */
+        #loadingScreen {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out;
+        }
+        .loader-plane {
+            font-size: 4rem;
+            animation: fly 2s infinite ease-in-out alternate;
+        }
+        @keyframes fly {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(50px, -50px) rotate(-10deg); }
+        }
+        .loader-bar-bg {
+            width: 200px; height: 6px;
+            background: #222;
+            border-radius: 10px;
+            margin-top: 30px;
+            overflow: hidden;
+        }
+        .loader-bar-fill {
+            width: 0%; height: 100%;
+            background: #e60000;
+            animation: load 2s forwards ease-in-out;
+        }
+        @keyframes load { to { width: 100%; } }
+
+        /* --- GAME AREA --- */
         .game-area {
             position: relative;
-            background: radial-gradient(circle at center, #1a0505 0%, #000000 100%);
-            border: 2px solid #222;
+            background: radial-gradient(circle at center, #100000 0%, #000000 100%);
+            border: 1px solid #222;
             border-radius: 12px;
             height: 400px;
             overflow: hidden;
         }
-        
         #gameCanvas { width: 100%; height: 100%; display: block; }
 
         .game-overlay {
@@ -46,23 +80,32 @@
         
         .multiplier {
             font-family: 'Orbitron', sans-serif;
-            font-size: 5rem;
+            font-size: 6rem;
             font-weight: 900;
             color: white;
             text-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
-            transition: color 0.2s;
         }
-
-        /* Components */
+        
+        /* --- COMPONENTS --- */
         .card {
             background: var(--card);
             border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
+            border-radius: 15px;
+            padding: 25px;
+            position: relative;
+            overflow: hidden;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #e60000, transparent);
+            opacity: 0.5;
         }
         
         .btn-main {
-            background: linear-gradient(135deg, #ff0000 0%, #990000 100%);
+            background: linear-gradient(135deg, #e60000 0%, #800000 100%);
             color: white;
             padding: 15px;
             border-radius: 8px;
@@ -72,185 +115,235 @@
             width: 100%;
             cursor: pointer;
             transition: 0.2s;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 15px rgba(230, 0, 0, 0.2);
         }
-        .btn-main:hover:not(:disabled) { transform: scale(1.02); box-shadow: 0 0 15px rgba(255,0,0,0.5); }
-        .btn-main:disabled { background: #444; cursor: not-allowed; transform: none; box-shadow: none; }
+        .btn-main:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(230, 0, 0, 0.4); }
+        .btn-main:disabled { background: #333; color: #555; cursor: not-allowed; transform: none; box-shadow: none; }
         
         .btn-sec {
-            background: #2a2a2a;
+            background: #1a1a1a;
             color: white;
             padding: 15px;
             border-radius: 8px;
             font-weight: bold;
-            border: 1px solid #444;
+            border: 1px solid #333;
             width: 100%;
             cursor: pointer;
+            transition: 0.2s;
         }
+        .btn-sec:hover { background: #222; }
 
         .input-box {
-            background: #0a0a0a;
-            border: 2px solid #333;
-            padding: 15px;
-            border-radius: 8px;
+            background: #000;
+            border: 2px solid #222;
+            padding: 20px;
+            border-radius: 10px;
             color: white;
             text-align: center;
-            font-size: 1.2rem;
+            font-size: 1.4rem;
             width: 100%;
             outline: none;
+            letter-spacing: 2px;
+            font-weight: bold;
         }
-        .input-box:focus { border-color: #ff0000; }
+        .input-box:focus { border-color: #e60000; box-shadow: 0 0 20px rgba(230, 0, 0, 0.2); }
 
         .screen { display: none; }
         .screen.active { display: block; }
 
+        /* History & Live */
         .history-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
             font-size: 0.8rem;
             margin: 2px;
             font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
-        .h-low { background: rgba(255,0,0,0.2); color: #ff6666; border: 1px solid rgba(255,0,0,0.3); }
-        .h-mid { background: rgba(0,100,255,0.2); color: #66aaff; border: 1px solid rgba(0,100,255,0.3); }
-        .h-high { background: rgba(150,0,255,0.2); color: #bb88ff; border: 1px solid rgba(150,0,255,0.3); }
+        .h-low { background: #2a0505; color: #ff4d4d; border: 1px solid #ff4d4d33; }
+        .h-mid { background: #05102a; color: #4d94ff; border: 1px solid #4d94ff33; }
+        .h-high { background: #1a052a; color: #d94dff; border: 1px solid #d94dff33; }
 
         .live-item {
             display: flex;
             justify-content: space-between;
             padding: 8px;
-            background: rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.02);
             border-radius: 4px;
             margin-bottom: 4px;
-            font-size: 0.9rem;
-            animation: fadeIn 0.5s;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #111;
+            animation: slideIn 0.3s ease-out;
         }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
 
-        /* Cooldown overlay */
-        .cooldown-timer {
-            font-size: 1.5rem;
-            color: #aaa;
-            margin-top: 10px;
+        /* Modal */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100; opacity: 0; pointer-events: none;
+            transition: 0.3s;
         }
+        .modal.show { opacity: 1; pointer-events: all; }
+        .modal-content {
+            background: #111;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid #333;
+            max-width: 450px;
+            transform: scale(0.8);
+            transition: 0.3s;
+            box-shadow: 0 0 50px rgba(230, 0, 0, 0.1);
+        }
+        .modal.show .modal-content { transform: scale(1); }
     </style>
 </head>
 <body>
 
-    <!-- 1. LOGIN SCREEN -->
-    <div id="loginScreen" class="screen active">
-        <div class="min-h-screen flex items-center justify-center p-4">
-            <div class="w-full max-w-md text-center">
-                <div class="w-24 h-24 mx-auto mb-6 bg-red-600 rounded-full flex items-center justify-center shadow-lg shadow-red-900/50">
-                    <!-- Plane Icon -->
-                    <svg width="50" height="50" viewBox="0 0 24 24" fill="white"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
-                </div>
-                <h1 class="font-display text-4xl font-bold mb-2">AVIATOR PRO</h1>
-                <p class="text-gray-500 mb-8">أداة التوقع الذكي</p>
+    <!-- 1. LOADING SCREEN -->
+    <div id="loadingScreen">
+        <div class="loader-plane">✈️</div>
+        <p class="text-gray-500 mt-4 text-sm font-bold tracking-widest">AVIATOR PRO</p>
+        <div class="loader-bar-bg">
+            <div class="loader-bar-fill"></div>
+        </div>
+    </div>
 
-                <div class="card">
+    <!-- WELCOME MODAL -->
+    <div id="welcomeModal" class="modal">
+        <div class="modal-content">
+            <div class="text-6xl mb-4">✈️</div>
+            <h2 class="text-3xl font-bold mb-2">مرحباً بك!</h2>
+            <p class="text-gray-400 mb-6">تم تفعيل اشتراكك بنجاح. استمتع بالتوقعات الذكية والربح.</p>
+            <button onclick="closeModal()" class="btn-main">ابدأ الآن</button>
+        </div>
+    </div>
+
+    <!-- 2. LOGIN SCREEN -->
+    <div id="loginScreen" class="screen">
+        <div class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-black via-red-950/10 to-black">
+            <div class="w-full max-w-md">
+                <div class="text-center mb-10">
+                    <div class="text-7xl mb-4">✈️</div>
+                    <h1 class="font-display text-5xl font-bold mb-1 tracking-wider">طيـارة</h1>
+                    <p class="text-gray-600 text-xs tracking-widest">PREDICTION SYSTEM V.4.0</p>
+                </div>
+
+                <div class="card shadow-2xl shadow-red-900/10">
+                    <div class="text-center mb-6">
+                        <h3 class="text-lg text-gray-400">للدخول أدخل كود التفعيل</h3>
+                    </div>
                     <form id="loginForm">
-                        <label class="block text-sm text-gray-400 mb-2">أدخل مفتاح الدخول</label>
-                        <input type="text" id="keyInput" class="input-box mb-4" placeholder="XXXX-XXXX" autocomplete="off">
-                        <button type="submit" class="btn-main">دخول</button>
+                        <div class="relative">
+                            <input type="text" id="keyInput" class="input-box" placeholder="XXXX-XXXX" autocomplete="off">
+                        </div>
+                        <button type="submit" class="btn-main mt-5">تفعيل الكود</button>
                     </form>
-                    <p id="errorMsg" class="text-red-500 mt-4 hidden">المفتاح غير صحيح</p>
-                    <div class="mt-6 pt-4 border-t border-gray-800">
-                        <button id="goToSubBtn" class="text-gray-400 text-sm hover:text-white underline">ليس لديك مفتاح؟ اضغط هنا</button>
+                    <p id="errorMsg" class="text-red-500 mt-4 text-center hidden text-sm"></p>
+                    <div class="mt-6 pt-4 border-t border-gray-800 text-center">
+                        <button id="goToSubBtn" class="text-gray-500 hover:text-white text-sm hover:underline">للحصول على كود تفعيل اضغط هنا</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 2. SUBSCRIPTION SCREEN -->
+    <!-- 3. SUBSCRIPTION SCREEN -->
     <div id="subScreen" class="screen">
         <div class="min-h-screen p-4 py-12 bg-black">
-            <div class="max-w-4xl mx-auto">
-                <button id="backToLogin" class="text-gray-400 mb-8 hover:text-white">&larr; رجوع</button>
-                <h1 class="text-3xl font-bold mb-8 text-center">خطط الاشتراك</h1>
+            <div class="max-w-5xl mx-auto">
+                <button id="backToLogin" class="text-gray-600 mb-8 hover:text-white flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                    رجوع
+                </button>
+                <h1 class="text-4xl font-bold mb-10 text-center">خطط الاشتراك</h1>
                 
-                <div class="grid md:grid-cols-4 gap-4">
-                    <div class="card text-center">
-                        <h3 class="text-xl mb-2">يوم واحد</h3>
-                        <p class="text-2xl font-bold mb-4">$5</p>
-                        <button onclick="alert('مفتاح التجربة: KEY-DAY-1')" class="btn-sec text-sm">طلب</button>
+                <div class="grid md:grid-cols-4 gap-6">
+                    <div class="card text-center hover:border-red-500 transition-colors group">
+                        <h3 class="text-xl mb-2 text-gray-400">يوم واحد</h3>
+                        <p class="text-4xl font-bold mb-4 text-white group-hover:text-red-500 transition-colors">$5</p>
+                        <a href="https://wa.me/20123456789?text=أريد%20شراء%20اشتراك%20يوم%20واحد" target="_blank" class="btn-sec text-sm block">طلب الشراء</a>
                     </div>
-                    <div class="card text-center">
-                        <h3 class="text-xl mb-2">يومين</h3>
-                        <p class="text-2xl font-bold mb-4">$8</p>
-                        <button onclick="alert('مفتاح التجربة: KEY-2DAYS')" class="btn-sec text-sm">طلب</button>
+                    <div class="card text-center hover:border-red-500 transition-colors group">
+                        <h3 class="text-xl mb-2 text-gray-400">يومين</h3>
+                        <p class="text-4xl font-bold mb-4 text-white group-hover:text-red-500 transition-colors">$8</p>
+                        <a href="https://wa.me/20123456789?text=أريد%20شراء%20اشتراك%20يومين" target="_blank" class="btn-sec text-sm block">طلب الشراء</a>
                     </div>
-                    <div class="card border-red-500 text-center relative">
-                        <span class="absolute -top-3 left-4 bg-red-600 text-xs px-2 py-1 rounded">موصى به</span>
-                        <h3 class="text-xl mb-2">أسبوع</h3>
-                        <p class="text-2xl font-bold mb-4">$25</p>
-                        <button onclick="alert('مفتاح التجربة: KEY-WEEK')" class="btn-main text-sm">طلب</button>
+                    <div class="card border-red-500 text-center relative bg-gradient-to-b from-red-950/20 to-black shadow-xl shadow-red-900/20">
+                        <span class="absolute -top-4 left-1/2 -translate-x-1/2 bg-red-600 text-xs px-4 py-1 rounded-full font-bold shadow-lg">الأكثر طلباً</span>
+                        <h3 class="text-xl mb-2 text-white">أسبوع</h3>
+                        <p class="text-4xl font-bold mb-4 text-red-500">$25</p>
+                        <a href="https://wa.me/20123456789?text=أريد%20شراء%20اشتراك%20أسبوع" target="_blank" class="btn-main text-sm block">طلب الشراء</a>
                     </div>
-                    <div class="card text-center">
-                        <h3 class="text-xl mb-2">شهر</h3>
-                        <p class="text-2xl font-bold mb-4">$70</p>
-                        <button onclick="alert('مفتاح التجربة: KEY-MONTH')" class="btn-sec text-sm">طلب</button>
+                    <div class="card text-center hover:border-red-500 transition-colors group">
+                        <h3 class="text-xl mb-2 text-gray-400">شهر</h3>
+                        <p class="text-4xl font-bold mb-4 text-white group-hover:text-red-500 transition-colors">$70</p>
+                        <a href="https://wa.me/20123456789?text=أريد%20شراء%20اشتراك%20شهر" target="_blank" class="btn-sec text-sm block">طلب الشراء</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 3. DASHBOARD -->
+    <!-- 4. DASHBOARD -->
     <div id="dashScreen" class="screen">
-        <header class="bg-black border-b border-gray-800 p-4 flex justify-between items-center sticky top-0 z-20">
-            <div class="flex items-center gap-2">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="#ff0000"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
-                <span class="font-bold">AVIATOR PRO</span>
+        <header class="bg-black/90 backdrop-blur border-b border-gray-900 p-4 flex justify-between items-center sticky top-0 z-20">
+            <div class="flex items-center gap-3">
+                <span class="text-3xl">✈️</span>
+                <div>
+                    <span class="font-bold text-lg block leading-tight">طيـارة</span>
+                    <span class="text-[10px] text-gray-500 tracking-widest">PREDICTION SYSTEM</span>
+                </div>
             </div>
             <div class="flex items-center gap-4">
-                <span id="expDate" class="text-xs bg-gray-800 px-3 py-1 rounded-full"></span>
-                <button id="logoutBtn" class="text-red-500 text-sm font-bold">خروج</button>
+                <span id="expDate" class="text-xs bg-gray-900 px-3 py-1 rounded-full text-gray-300 border border-gray-800"></span>
+                <button id="logoutBtn" class="text-gray-500 text-sm font-bold hover:text-red-500">خروج</button>
             </div>
         </header>
 
-        <main class="max-w-5xl mx-auto p-4">
-            <div class="grid lg:grid-cols-3 gap-4">
-                <!-- Left: Game & Controls -->
+        <main class="max-w-6xl mx-auto p-4">
+            <div class="grid lg:grid-cols-3 gap-6">
+                <!-- Left: Game -->
                 <div class="lg:col-span-2 space-y-4">
-                    <!-- Game Visualization -->
                     <div class="game-area">
                         <canvas id="gameCanvas"></canvas>
                         <div class="game-overlay">
-                            <div id="statusText" class="text-gray-400 mb-2 text-lg">جاهز للتوقع</div>
+                            <div id="statusText" class="text-gray-500 mb-2 text-lg tracking-widest uppercase">انتظر التوقع</div>
                             <div id="multiplierBox" class="multiplier">1.00x</div>
-                            <div id="cooldownText" class="cooldown-timer"></div>
+                            <div id="cooldownText" class="text-gray-500 mt-2 text-sm h-5"></div>
                         </div>
                     </div>
 
-                    <!-- Buttons -->
                     <div class="grid grid-cols-2 gap-4">
-                        <button id="startBtn" class="btn-main">بدء التوقع</button>
+                        <button id="startBtn" class="btn-main">توقع الآن</button>
                         <button id="copyBtn" class="btn-sec">نسخ النتيجة</button>
                     </div>
 
-                    <!-- Result -->
-                    <div id="resultBox" class="card hidden text-center border-red-500 bg-gray-900">
+                    <div id="resultBox" class="card hidden text-center border-red-500 bg-red-950/20 backdrop-blur">
                         <p class="text-gray-400 text-sm">توقع الجولة القادمة</p>
-                        <p id="finalVal" class="font-display text-4xl text-white mt-2">0.00x</p>
+                        <p id="finalVal" class="font-display text-5xl text-white mt-2">0.00x</p>
                     </div>
                 </div>
 
                 <!-- Right: Live & Stats -->
                 <div class="space-y-4">
                     <!-- Live Feed -->
-                    <div class="card">
-                        <h3 class="font-bold mb-3 flex items-center gap-2 text-red-500">
-                            <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                            مباشر (Live)
-                        </h3>
-                        <div id="liveFeed" class="space-y-1 h-72 overflow-y-auto pr-2"></div>
+                    <div class="card bg-black border-gray-800">
+                        <div class="flex justify-between items-center mb-3 border-b border-gray-900 pb-3">
+                            <h3 class="font-bold text-red-500 flex items-center gap-2 text-sm">
+                                <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse inline-block"></span>
+                                مباشر الآن
+                            </h3>
+                            <div class="text-xs bg-red-600 text-white px-2 py-1 rounded-full font-bold" id="liveUserCount">3,214 متصل</div>
+                        </div>
+                        <div id="liveFeed" class="space-y-1 h-80 overflow-y-auto pr-1"></div>
                     </div>
 
                     <!-- History -->
-                    <div class="card">
-                        <h3 class="font-bold mb-3">سجل الجولات</h3>
+                    <div class="card border-gray-800">
+                        <h3 class="font-bold mb-3 text-xs text-gray-500">سجل التوقعات</h3>
                         <div id="historyBox" class="flex flex-wrap gap-1"></div>
                     </div>
                 </div>
@@ -259,7 +352,7 @@
     </div>
 
     <script>
-        // --- SYSTEM CONFIGURATION ---
+        // --- CONFIGURATION ---
         const APP_KEYS = {
             'KEY-DAY-1': 1,
             'KEY-2DAYS': 2,
@@ -267,14 +360,23 @@
             'KEY-MONTH': 30
         };
 
-        // Large list of names
-        const names = ['أحمد', 'محمد', 'سعيد', 'خالد', 'علي', 'فهد', 'سعود', 'عمر', 'يزيد', 'راشد', 'مالك', 'أسامة', 'طارق', 'حسين', 'محمود', 'عبدالله', 'فيصل', 'ماجد', 'وليد', 'سلمان', 'نواف', 'يوسف', 'زياد', 'باسم', 'جاسر', 'هتان', 'رياض', 'عماد', 'نبيل', 'جمال'];
+        // Massive list of names
+        const names = [
+            'Ahmed', 'Mohammed', 'Ali', 'Khaled', 'Omar', 'Fahad', 'Saad', 'Rashed', 'Youssef', 'Ibrahim',
+            'Karim', 'Tamer', 'Hassan', 'Hussein', 'Mostafa', 'Mahmoud', 'Nasser', 'Faisal', 'Walid', 'Sultan',
+            'Turki', 'Majed', 'Nawaf', 'Saud', 'Bader', 'Jasser', 'Danah', 'Lana', 'Sara', 'Noura',
+            'Reem', 'Huda', 'Mona', 'Aisha', 'Fatima', 'Khadija', 'Mariam', 'Salma', 'Dalia', 'Ghada',
+            'Rania', 'Heba', 'Laila', 'Samira', 'Nadia', 'Farida', 'Aya', 'Yara', 'Tasneem', 'Zahra',
+            'Abdullah', 'Saeed', 'Mutaib', 'Kareem', 'Jawad', 'Nabil', 'Wael', 'Hisham', 'Amr', 'Ayman',
+            'Rami', 'Oday', 'Muath', 'Saleh', 'Thamer', 'Mishari', 'Mansour', 'Rayan', 'Judy', 'Sami'
+        ];
         
         // --- STATE VARIABLES ---
         let isAnimating = false;
         let animFrameId = null;
         let cooldownTimer = null;
-        let currentData = { x: 0, y: 0, target: 2.00 };
+        let explosionParticles = [];
+        let currentData = { x: 0, y: 0, target: 2.00, points: [], multiplier: 1.00 };
         
         // --- DOM ELEMENTS ---
         const screens = {
@@ -284,6 +386,7 @@
         };
 
         const els = {
+            loader: document.getElementById('loadingScreen'),
             keyInput: document.getElementById('keyInput'),
             loginErr: document.getElementById('errorMsg'),
             expDate: document.getElementById('expDate'),
@@ -296,16 +399,31 @@
             finalVal: document.getElementById('finalVal'),
             liveFeed: document.getElementById('liveFeed'),
             historyBox: document.getElementById('historyBox'),
-            startBtn: document.getElementById('startBtn')
+            startBtn: document.getElementById('startBtn'),
+            modal: document.getElementById('welcomeModal'),
+            userCount: document.getElementById('liveUserCount')
         };
 
         // --- INITIALIZATION ---
         window.onload = function() {
+            // Loading Screen Simulation
+            setTimeout(() => {
+                els.loader.style.opacity = '0';
+                setTimeout(() => {
+                    els.loader.style.display = 'none';
+                    initApp();
+                }, 500);
+            }, 2200); // Wait for loading bar animation
+        };
+
+        function initApp() {
             els.ctx = els.canvas.getContext('2d');
             
             const exp = localStorage.getItem('avi_exp');
             if (exp && new Date(exp) > new Date()) {
-                setupDashboard(exp);
+                setupDashboard(exp, false);
+            } else {
+                switchScreen('login');
             }
             
             // Event Listeners
@@ -317,11 +435,15 @@
             document.getElementById('copyBtn').addEventListener('click', copyResult);
             
             window.addEventListener('resize', resizeCanvas);
-        };
+        }
 
         function switchScreen(name) {
             Object.values(screens).forEach(s => s.classList.remove('active'));
             screens[name].classList.add('active');
+        }
+
+        function closeModal() {
+            els.modal.classList.remove('show');
         }
 
         // --- AUTH HANDLERS ---
@@ -336,9 +458,9 @@
                 expDate.setDate(expDate.getDate() + days);
                 
                 localStorage.setItem('avi_exp', expDate.toISOString());
-                setupDashboard(expDate.toISOString());
+                setupDashboard(expDate.toISOString(), true);
             } else {
-                els.loginErr.textContent = 'المفتاح غير صحيح';
+                els.loginErr.textContent = 'كود التفعيل غير صحيح';
                 els.loginErr.classList.remove('hidden');
             }
         }
@@ -352,7 +474,7 @@
             els.startBtn.disabled = false;
         }
 
-        function setupDashboard(exp) {
+        function setupDashboard(exp, showWelcome) {
             const diff = new Date(exp) - new Date();
             const days = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
             els.expDate.textContent = days + ' يوم متبقي';
@@ -362,6 +484,10 @@
             resetCanvas();
             generateFakeHistory();
             startLiveFeed();
+            
+            if (showWelcome) {
+                setTimeout(() => els.modal.classList.add('show'), 300);
+            }
         }
 
         // --- GAME LOGIC ---
@@ -370,31 +496,26 @@
             
             // UI Reset
             els.resultBox.classList.add('hidden');
-            els.statusText.textContent = 'جاري التحليل...';
+            els.statusText.textContent = 'جاري الطيران...';
+            els.statusText.classList.remove('text-red-500');
             els.cooldownText.textContent = '';
+            explosionParticles = [];
             
-            // Start Game Animation
             isAnimating = true;
-            
-            // Logic for prediction
-            // Request: Cap at 10x.
-            // Request: Wait 5 seconds AFTER result.
-            
             resizeCanvas();
             
             // Smart Prediction (Max 10x)
             let r = Math.random();
             let target;
-            if (r < 0.6) target = (Math.random() * 2 + 1.5).toFixed(2); // 1.5 - 3.5 (Common)
-            else if (r < 0.9) target = (Math.random() * 3 + 3.5).toFixed(2); // 3.5 - 6.5 (Medium)
-            else target = (Math.random() * 3.5 + 6.5).toFixed(2); // 6.5 - 10.0 (Rare High)
+            if (r < 0.6) target = (Math.random() * 2 + 1.5).toFixed(2); 
+            else if (r < 0.9) target = (Math.random() * 3 + 3.5).toFixed(2); 
+            else target = (Math.random() * 3.5 + 6.5).toFixed(2); 
             
-            // Hard Cap at 10.00
             if (parseFloat(target) > 10.00) target = "10.00";
             
             currentData = { x: 50, y: 350, target: parseFloat(target), points: [], multiplier: 1.00 };
             
-            els.multiplierBox.style.color = '#00ff00'; // Green
+            els.multiplierBox.style.color = '#00ff00';
             animateGame();
         }
 
@@ -404,47 +525,44 @@
             const ctx = els.ctx;
             const can = els.canvas;
             
-            // Clear
             ctx.clearRect(0, 0, can.width, can.height);
-            
-            // Grid
             drawGrid(ctx, can);
-            
-            // Update Logic
-            // Speed of growth
-            currentData.x += 4;
-            currentData.multiplier += 0.03; 
-            
-            // Y position (Exponential curve)
-            currentData.y = 350 - Math.pow(currentData.multiplier, 1.5) * 20;
-            
-            if (currentData.y < 20) currentData.y = 20;
-            
-            currentData.points.push({x: currentData.x, y: currentData.y});
             
             // Draw Path
             ctx.beginPath();
             ctx.moveTo(50, 350);
             for (let p of currentData.points) ctx.lineTo(p.x, p.y);
-            ctx.strokeStyle = '#ff0000';
+            ctx.strokeStyle = '#e60000';
             ctx.lineWidth = 4;
             ctx.stroke();
             
-            // Fill under line
+            // Fill
             ctx.lineTo(currentData.x, 350);
             ctx.lineTo(50, 350);
-            ctx.fillStyle = 'rgba(255, 0, 0, 0.1)';
+            ctx.fillStyle = 'rgba(230, 0, 0, 0.1)';
             ctx.fill();
             
-            // Draw Plane
-            drawPlane(ctx, currentData.x, currentData.y, -45 - (currentData.multiplier * 5));
+            // Logic
+            currentData.x += 4;
+            currentData.multiplier += 0.03; 
+            currentData.y = 350 - Math.pow(currentData.multiplier, 1.5) * 20;
+            if (currentData.y < 20) currentData.y = 20;
+            currentData.points.push({x: currentData.x, y: currentData.y});
             
-            // Update UI Text
+            // Draw Plane
+            if (explosionParticles.length === 0) {
+                drawPlane(ctx, currentData.x, currentData.y, -45 - (currentData.multiplier * 5));
+            } else {
+                // Draw Explosion
+                drawExplosion(ctx);
+            }
+
             els.multiplierBox.textContent = currentData.multiplier.toFixed(2) + 'x';
             
-            // Check Target
             if (currentData.multiplier >= currentData.target) {
-                endGame(currentData.target);
+                if (explosionParticles.length === 0) triggerExplosion();
+                // Continue animating explosion
+                animFrameId = requestAnimationFrame(animateGame);
                 return;
             }
             
@@ -452,48 +570,97 @@
         }
         
         function drawGrid(ctx, can) {
-            ctx.strokeStyle = '#222';
+            ctx.strokeStyle = '#111';
             ctx.lineWidth = 1;
             for(let i=0; i<can.width; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i, can.height); ctx.stroke(); }
             for(let i=0; i<can.height; i+=50) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(can.width, i); ctx.stroke(); }
         }
 
+        // Realistic Plane Drawing Function
         function drawPlane(ctx, x, y, angle) {
             ctx.save();
             ctx.translate(x, y);
             ctx.rotate(angle * Math.PI / 180);
             
-            // Plane Body
-            ctx.fillStyle = '#ff0000';
+            // Body
+            ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.moveTo(0, -20);
-            ctx.lineTo(20, 20);
-            ctx.lineTo(0, 10);
-            ctx.lineTo(-20, 20);
+            ctx.ellipse(0, 0, 18, 6, 0, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Wings
+            ctx.fillStyle = '#e5e5e5';
+            ctx.beginPath();
+            ctx.moveTo(-5, 0);
+            ctx.lineTo(0, -20);
+            ctx.lineTo(5, 0);
+            ctx.lineTo(0, 20);
             ctx.closePath();
             ctx.fill();
             
-            // Glow
-            ctx.shadowColor = '#ff0000';
-            ctx.shadowBlur = 20;
+            // Tail
+            ctx.fillStyle = '#e5e5e5';
+            ctx.beginPath();
+            ctx.moveTo(-15, 0);
+            ctx.lineTo(-18, -10);
+            ctx.lineTo(-12, 0);
+            ctx.lineTo(-18, 10);
+            ctx.closePath();
             ctx.fill();
+
+            // Glow
+            ctx.shadowColor = '#e60000';
+            ctx.shadowBlur = 20;
             
             ctx.restore();
         }
 
-        function endGame(result) {
-            isAnimating = false;
-            
-            els.multiplierBox.textContent = result + 'x';
+        // Explosion Logic
+        function triggerExplosion() {
             els.multiplierBox.style.color = 'white';
-            els.statusText.textContent = 'انتهت الجولة!';
-            els.finalVal.textContent = result + 'x';
+            els.statusText.textContent = 'تحطمت!';
+            els.statusText.classList.add('text-red-500');
+            els.finalVal.textContent = currentData.target.toFixed(2) + 'x';
             els.resultBox.classList.remove('hidden');
-            
-            // Add History
-            addHistoryItem(result);
-            
-            // Start 5 Second Cooldown
+
+            // Create particles
+            for(let i=0; i<30; i++) {
+                explosionParticles.push({
+                    x: currentData.x,
+                    y: currentData.y,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10,
+                    life: 1.0,
+                    size: Math.random() * 8 + 2
+                });
+            }
+
+            setTimeout(() => {
+                isAnimating = false;
+                startCooldown();
+            }, 1000);
+        }
+
+        function drawExplosion(ctx) {
+            explosionParticles.forEach((p, index) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.05;
+                
+                if (p.life <= 0) {
+                    explosionParticles.splice(index, 1);
+                    return;
+                }
+                
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                ctx.fillStyle = `rgba(255, 50, 0, ${p.life})`;
+                ctx.fill();
+            });
+        }
+
+        function startCooldown() {
+            addHistoryItem(currentData.target);
             let secondsLeft = 5;
             els.startBtn.disabled = true;
             els.cooldownText.textContent = `انتظر ${secondsLeft} ثواني...`;
@@ -507,7 +674,9 @@
                     els.startBtn.disabled = false;
                     els.cooldownText.textContent = '';
                     els.statusText.textContent = 'جاهز للتوقع';
+                    els.statusText.classList.remove('text-red-500');
                     els.multiplierBox.textContent = '1.00x';
+                    explosionParticles = [];
                     resetCanvas();
                 }
             }, 1000);
@@ -531,7 +700,7 @@
         function copyResult() {
             const t = els.finalVal.textContent;
             if(t && t !== '0.00x') {
-                navigator.clipboard.writeText('Aviator Prediction: ' + t);
+                navigator.clipboard.writeText('توقع طيارة: ' + t);
                 alert('تم النسخ: ' + t);
             } else {
                 alert('لا توجد نتيجة بعد');
@@ -539,27 +708,27 @@
         }
 
         function startLiveFeed() {
-            // Initial populate
-            for(let i=0; i<15; i++) addLiveItem(false);
+            for(let i=0; i<25; i++) addLiveItem(false);
             
-            // Frequent updates
             setInterval(() => {
                 addLiveItem(true);
-            }, 800); // Fast updates
+                // Large numbers for realism: 3000 to 7000
+                els.userCount.textContent = (Math.floor(Math.random() * 4000) + 3000).toLocaleString() + ' متصل';
+            }, 600); 
         }
         
         function addLiveItem(removeOld) {
             const name = names[Math.floor(Math.random() * names.length)];
-            const val = (Math.random() * 9 + 1).toFixed(2); // Between 1 and 10
-            const won = Math.random() > 0.3;
+            const val = (Math.random() * 9 + 1).toFixed(2); 
+            const won = Math.random() > 0.35;
             
             const div = document.createElement('div');
             div.className = 'live-item';
-            div.innerHTML = `<span>${name}</span><span class="${won ? 'text-green-500' : 'text-red-500'}">${val}x</span>`;
+            div.innerHTML = `<span class="text-gray-400">${name}</span><span class="${won ? 'text-green-500' : 'text-red-500'} font-bold">${val}x</span>`;
             
             els.liveFeed.insertBefore(div, els.liveFeed.firstChild);
             
-            if (removeOld && els.liveFeed.children.length > 20) {
+            if (removeOld && els.liveFeed.children.length > 40) {
                 els.liveFeed.lastChild.remove();
             }
         }
