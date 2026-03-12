@@ -3,9 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة تخمين الطيارة المتقدمة</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <title>Aviator Pro - تخمين ذكي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #0a0a0f;
+            --bg-secondary: #12121a;
+            --fg: #ffffff;
+            --muted: #6b7280;
+            --accent: #ff3d00;
+            --accent-glow: rgba(255, 61, 0, 0.4);
+            --card: #1a1a24;
+            --border: #2a2a3a;
+            --success: #00e676;
+            --gold: #ffd700;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -14,1250 +28,971 @@
 
         body {
             font-family: 'Cairo', sans-serif;
-            background: #0a0a1a;
+            background: var(--bg);
+            color: var(--fg);
             min-height: 100vh;
-            color: white;
             overflow-x: hidden;
         }
 
-        /* ═══════════════ شاشة التحميل ═══════════════ */
-        .loading-screen {
+        .font-display {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .bg-animated {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #0a0a1a, #1a0a2e);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s, visibility 0.5s;
+            z-index: -1;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(255, 61, 0, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(255, 215, 0, 0.1) 0%, transparent 50%),
+                linear-gradient(180deg, var(--bg) 0%, var(--bg-secondary) 100%);
         }
 
-        .loading-screen.hidden {
-            opacity: 0;
-            visibility: hidden;
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(255, 61, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 61, 0, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            animation: gridMove 20s linear infinite;
         }
 
-        .loading-plane {
-            font-size: 4em;
-            animation: loadingFly 2s ease-in-out infinite;
+        @keyframes gridMove {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(50px); }
         }
 
-        @keyframes loadingFly {
-            0%, 100% { transform: translateX(-30px) rotate(-10deg); }
-            50% { transform: translateX(30px) rotate(-5deg); }
-        }
-
-        .loading-text {
-            margin-top: 20px;
-            font-size: 1.3em;
-            color: #f39c12;
-        }
-
-        .loading-bar {
-            width: 200px;
+        .particle {
+            position: fixed;
+            width: 4px;
             height: 4px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            margin-top: 20px;
+            background: var(--accent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            animation: float 15s infinite;
+            opacity: 0.6;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-100vh) scale(1); opacity: 0; }
+        }
+
+        .plane-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
             overflow: hidden;
         }
 
-        .loading-progress {
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(90deg, #f39c12, #e74c3c);
-            border-radius: 10px;
-            animation: loading 2s ease-in-out forwards;
+        .plane-path {
+            position: absolute;
+            bottom: 50px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: pathGrow 3s ease-out forwards;
         }
 
-        @keyframes loading {
-            0% { width: 0%; }
+        .plane {
+            position: absolute;
+            bottom: 50px;
+            left: 0;
+            font-size: 3rem;
+            animation: flyUp 3s ease-out forwards;
+            filter: drop-shadow(0 0 20px var(--accent-glow));
+        }
+
+        @keyframes flyUp {
+            0% { left: 10%; bottom: 50px; transform: rotate(-45deg); }
+            100% { left: 80%; bottom: 250px; transform: rotate(-45deg); }
+        }
+
+        @keyframes pathGrow {
+            0% { width: 0; }
             100% { width: 100%; }
         }
 
-        /* ═══════════════ الخلفية المتحركة ═══════════════ */
-        .background {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
         }
 
-        .stars {
-            position: absolute;
-            width: 100%;
-            height: 100%;
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(255, 61, 0, 0.2);
         }
 
-        .star {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            animation: twinkle 3s ease-in-out infinite;
-        }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.2; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.2); }
-        }
-
-        .shooting-star {
-            position: absolute;
-            width: 100px;
-            height: 2px;
-            background: linear-gradient(90deg, white, transparent);
-            animation: shoot 3s ease-in-out infinite;
-            opacity: 0;
-        }
-
-        @keyframes shoot {
-            0% { transform: translateX(0) translateY(0); opacity: 0; }
-            10% { opacity: 1; }
-            100% { transform: translateX(-500px) translateY(300px); opacity: 0; }
-        }
-
-        .floating-plane {
-            position: absolute;
-            font-size: 2em;
-            opacity: 0.1;
-            animation: floatPlane 20s linear infinite;
-        }
-
-        @keyframes floatPlane {
-            0% { transform: translateX(-100px) translateY(0); }
-            100% { transform: translateX(calc(100vw + 100px)) translateY(-50px); }
-        }
-
-        /* ═══════════════ الحاوية الرئيسية ═══════════════ */
-        .container {
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent) 0%, #ff6f00 100%);
+            color: white;
+            padding: 12px 32px;
+            border-radius: 12px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
             position: relative;
-            z-index: 1;
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 20px;
-            min-height: 100vh;
+            overflow: hidden;
+            font-family: 'Cairo', sans-serif;
         }
 
-        /* ═══════════════ صفحة تسجيل الدخول ═══════════════ */
-        .login-page {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            animation: fadeIn 1s ease;
+        .btn-primary:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px var(--accent-glow);
         }
 
-        .login-page.hidden {
-            display: none;
+        .btn-secondary {
+            background: transparent;
+            color: var(--fg);
+            padding: 12px 32px;
+            border-radius: 12px;
+            font-weight: 600;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Cairo', sans-serif;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
         }
 
-        .logo-container {
-            position: relative;
-            margin-bottom: 30px;
+        .input-field {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 20px;
+            color: var(--fg);
+            width: 100%;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: 'Cairo', sans-serif;
         }
 
-        .logo-plane {
-            font-size: 5em;
-            animation: planeBounce 3s ease-in-out infinite;
-            filter: drop-shadow(0 0 30px rgba(243, 156, 18, 0.5));
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 20px var(--accent-glow);
         }
 
-        @keyframes planeBounce {
-            0%, 100% { transform: translateY(0) rotate(-10deg); }
-            25% { transform: translateY(-15px) rotate(-15deg); }
-            75% { transform: translateY(-5px) rotate(-5deg); }
-        }
-
-        .logo-glow {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 120px;
-            height: 120px;
-            background: radial-gradient(circle, rgba(243, 156, 18, 0.3), transparent);
-            border-radius: 50%;
+        .multiplier-display {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             animation: pulse 2s ease-in-out infinite;
         }
 
         @keyframes pulse {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
-            50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.8; }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
 
-        .app-title {
-            font-size: 2.2em;
-            font-weight: 900;
-            background: linear-gradient(135deg, #f39c12, #e74c3c, #9b59b6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 8px;
-            text-align: center;
-        }
-
-        .app-subtitle {
-            color: #666;
-            font-size: 1em;
-            margin-bottom: 40px;
-            text-align: center;
-        }
-
-        .login-card {
-            width: 100%;
-            background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 30px;
-            padding: 40px 30px;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
-            animation: cardFloat 6s ease-in-out infinite;
-        }
-
-        @keyframes cardFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .input-wrapper {
-            position: relative;
-            margin-bottom: 25px;
-        }
-
-        .input-icon {
-            position: absolute;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1.3em;
-            animation: keyShake 2s ease-in-out infinite;
-        }
-
-        @keyframes keyShake {
-            0%, 100% { transform: translateY(-50%) rotate(0deg); }
-            25% { transform: translateY(-50%) rotate(-10deg); }
-            75% { transform: translateY(-50%) rotate(10deg); }
-        }
-
-        .key-input {
-            width: 100%;
-            padding: 20px 60px 20px 25px;
-            border: 2px solid rgba(255,255,255,0.1);
-            border-radius: 20px;
-            background: rgba(0,0,0,0.4);
-            color: white;
-            font-size: 1.2em;
-            font-family: 'Cairo', sans-serif;
-            text-align: center;
-            letter-spacing: 4px;
-            transition: all 0.4s ease;
-        }
-
-        .key-input::placeholder {
-            color: #555;
-            letter-spacing: 1px;
-        }
-
-        .key-input:focus {
-            outline: none;
-            border-color: #f39c12;
-            box-shadow: 0 0 30px rgba(243, 156, 18, 0.3);
-            background: rgba(0,0,0,0.6);
-        }
-
-        .key-input.error {
-            border-color: #e74c3c;
-            animation: inputShake 0.5s ease;
-        }
-
-        .key-input.success {
-            border-color: #2ecc71;
-            box-shadow: 0 0 30px rgba(46, 204, 113, 0.4);
-        }
-
-        @keyframes inputShake {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-15px); }
-            40% { transform: translateX(15px); }
-            60% { transform: translateX(-10px); }
-            80% { transform: translateX(10px); }
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 20px;
-            background: linear-gradient(135deg, #f39c12, #e67e22);
-            border: none;
-            border-radius: 20px;
-            color: white;
-            font-size: 1.4em;
-            font-weight: 700;
-            font-family: 'Cairo', sans-serif;
-            cursor: pointer;
-            transition: all 0.4s ease;
-            box-shadow: 0 15px 35px rgba(243, 156, 18, 0.3);
+        .sub-card {
             position: relative;
             overflow: hidden;
         }
 
-        .login-btn::before {
-            content: '';
+        .sub-card.featured {
+            border-color: var(--gold);
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.2);
+        }
+
+        .sub-card.featured::before {
+            content: 'الأكثر طلباً';
             position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.6s ease;
+            top: 20px;
+            left: -30px;
+            background: var(--gold);
+            color: var(--bg);
+            padding: 5px 40px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            transform: rotate(45deg);
         }
 
-        .login-btn:hover::before {
-            left: 100%;
-        }
-
-        .login-btn:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 25px 50px rgba(243, 156, 18, 0.5);
-        }
-
-        .login-btn:active {
-            transform: scale(0.98);
-        }
-
-        .error-message {
-            text-align: center;
-            color: #e74c3c;
-            margin-top: 20px;
-            font-size: 1em;
+        .screen {
             display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .features {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin-top: 30px;
-            flex-wrap: wrap;
-        }
-
-        .feature {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #888;
-            font-size: 0.9em;
-        }
-
-        .feature-icon {
-            font-size: 1.2em;
-        }
-
-        /* ═══════════════ صفحة التخمين ═══════════════ */
-        .game-page {
-            display: none;
-            animation: fadeIn 0.8s ease;
-            padding-top: 20px;
-            padding-bottom: 30px;
-        }
-
-        .game-page.active {
-            display: block;
-        }
-
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 20px;
-            margin-bottom: 25px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .top-bar-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-            color: #f39c12;
-        }
-
-        .top-bar-title span {
-            animation: planeBounce 3s ease-in-out infinite;
-            display: inline-block;
-        }
-
-        .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 15px;
-            background: rgba(46, 204, 113, 0.2);
-            border: 1px solid #2ecc71;
-            border-radius: 30px;
-            font-size: 0.85em;
-            color: #2ecc71;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background: #2ecc71;
-            border-radius: 50%;
-            animation: blink 1s ease-in-out infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        .logout-btn {
-            padding: 10px 20px;
-            background: rgba(231, 76, 60, 0.15);
-            border: 1px solid rgba(231, 76, 60, 0.3);
-            border-radius: 12px;
-            color: #e74c3c;
-            font-family: 'Cairo', sans-serif;
-            font-size: 0.9em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:hover {
-            background: #e74c3c;
-            color: white;
-            transform: scale(1.05);
-        }
-
-        /* بطاقة التخمين الرئيسية */
-        .prediction-card {
-            background: linear-gradient(160deg, #1a1a3e, #0d0d2b);
-            border-radius: 35px;
-            padding: 40px 25px;
-            margin-bottom: 25px;
-            position: relative;
-            overflow: hidden;
-            border: 2px solid rgba(52, 152, 219, 0.3);
-            box-shadow: 0 30px 60px rgba(0,0,0,0.4),
-                        inset 0 1px 0 rgba(255,255,255,0.1);
-        }
-
-        .prediction-card::before {
-            content: '';
-            position: absolute;
-            top: -100%;
-            left: -100%;
-            width: 300%;
-            height: 300%;
-            background: conic-gradient(from 0deg, transparent, rgba(243, 156, 18, 0.05), transparent, rgba(52, 152, 219, 0.05), transparent);
-            animation: rotateBg 15s linear infinite;
-        }
-
-        @keyframes rotateBg {
-            100% { transform: rotate(360deg); }
-        }
-
-        .prediction-content {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-        }
-
-        .signal-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 25px;
-            background: rgba(46, 204, 113, 0.15);
-            border: 1px solid rgba(46, 204, 113, 0.3);
-            border-radius: 30px;
-            margin-bottom: 25px;
-            font-size: 0.95em;
-            color: #2ecc71;
-        }
-
-        .signal-bars {
-            display: flex;
-            gap: 3px;
-            align-items: flex-end;
-        }
-
-        .signal-bar {
-            width: 4px;
-            background: #2ecc71;
-            border-radius: 2px;
-            animation: signalPulse 1s ease-in-out infinite;
-        }
-
-        .signal-bar:nth-child(1) { height: 6px; animation-delay: 0s; }
-        .signal-bar:nth-child(2) { height: 10px; animation-delay: 0.2s; }
-        .signal-bar:nth-child(3) { height: 14px; animation-delay: 0.4s; }
-        .signal-bar:nth-child(4) { height: 18px; animation-delay: 0.6s; }
-
-        @keyframes signalPulse {
-            0%, 100% { opacity: 0.4; }
-            50% { opacity: 1; }
-        }
-
-        .main-plane {
-            font-size: 4em;
-            margin-bottom: 15px;
-            display: inline-block;
-            animation: mainPlaneFly 4s ease-in-out infinite;
-            filter: drop-shadow(0 0 30px rgba(243, 156, 18, 0.6));
-        }
-
-        @keyframes mainPlaneFly {
-            0%, 100% { transform: translateX(0) translateY(0) rotate(-12deg); }
-            25% { transform: translateX(15px) translateY(-20px) rotate(-18deg); }
-            50% { transform: translateX(5px) translateY(-10px) rotate(-8deg); }
-            75% { transform: translateX(-10px) translateY(-15px) rotate(-15deg); }
-        }
-
-        .prediction-label {
-            font-size: 1.1em;
-            color: #888;
-            margin-bottom: 15px;
-        }
-
-        .prediction-number {
-            font-size: 5em;
-            font-weight: 900;
-            background: linear-gradient(135deg, #00d9ff, #00ff88, #00d9ff);
-            background-size: 200% 200%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: gradientMove 3s ease infinite, numberPop 0.5s ease;
-            line-height: 1.2;
-        }
-
-        @keyframes gradientMove {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-        }
-
-        @keyframes numberPop {
-            0% { transform: scale(0.5); opacity: 0; }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .prediction-time {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 20px;
-            color: #666;
-            font-size: 0.9em;
-        }
-
-        .time-icon {
-            animation: spin 2s linear infinite;
-        }
-
-        @keyframes spin {
-            100% { transform: rotate(360deg); }
-        }
-
-        /* زر التخمين */
-        .predict-btn {
-            width: 100%;
-            padding: 25px;
-            background: linear-gradient(135deg, #9b59b6, #8e44ad, #7d3c98);
-            background-size: 200% 200%;
-            border: none;
-            border-radius: 25px;
-            color: white;
-            font-size: 1.5em;
-            font-weight: 700;
-            font-family: 'Cairo', sans-serif;
-            cursor: pointer;
-            transition: all 0.4s ease;
-            box-shadow: 0 20px 40px rgba(155, 89, 182, 0.4);
-            position: relative;
-            overflow: hidden;
-            animation: btnPulse 3s ease-in-out infinite;
-        }
-
-        @keyframes btnPulse {
-            0%, 100% { box-shadow: 0 20px 40px rgba(155, 89, 182, 0.4); }
-            50% { box-shadow: 0 25px 50px rgba(155, 89, 182, 0.6); }
-        }
-
-        .predict-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
-            transition: left 0.6s ease;
-        }
-
-        .predict-btn:hover::before {
-            left: 100%;
-        }
-
-        .predict-btn:hover {
-            transform: translateY(-5px) scale(1.02);
-            background-position: 100% 0;
-        }
-
-        .predict-btn:active {
-            transform: scale(0.97);
-        }
-
-        .predict-btn.loading {
-            pointer-events: none;
-        }
-
-        .predict-btn.loading .btn-text {
             opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
         }
 
-        .predict-btn.loading::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 30px;
-            height: 30px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top-color: white;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+        .screen.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
         }
 
-        /* قسم السجل */
-        .history-section {
-            background: rgba(255,255,255,0.03);
-            border-radius: 25px;
-            padding: 25px;
-            margin-top: 25px;
-            border: 1px solid rgba(255,255,255,0.05);
+        ::-webkit-scrollbar {
+            width: 8px;
         }
 
-        .section-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
         }
 
-        .section-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.1em;
-            color: #aaa;
-        }
-
-        .clear-btn {
-            padding: 6px 15px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 10px;
-            color: #888;
-            font-family: 'Cairo', sans-serif;
-            font-size: 0.85em;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .clear-btn:hover {
-            background: rgba(231, 76, 60, 0.2);
-            border-color: #e74c3c;
-            color: #e74c3c;
-        }
-
-        .history-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 4px;
         }
 
         .history-item {
-            padding: 12px 20px;
-            border-radius: 15px;
-            font-weight: 700;
-            font-size: 1em;
-            animation: itemPop 0.4s ease;
-            transition: transform 0.2s;
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
         }
 
-        .history-item:hover {
-            transform: scale(1.1);
+        .prediction-result {
+            animation: revealResult 0.5s ease forwards;
         }
 
-        @keyframes itemPop {
-            0% { transform: scale(0); opacity: 0; }
-            50% { transform: scale(1.2); }
+        @keyframes revealResult {
+            0% { transform: scale(0.8); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
 
-        .history-item.legendary {
-            background: linear-gradient(135deg, #f39c12, #e74c3c);
-            box-shadow: 0 5px 20px rgba(243, 156, 18, 0.4);
+        .countdown {
+            font-family: 'Orbitron', sans-serif;
         }
 
-        .history-item.high {
-            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+        .stat-bar {
+            height: 8px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            overflow: hidden;
         }
 
-        .history-item.medium {
-            background: linear-gradient(135deg, #3498db, #2980b9);
+        .stat-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--gold));
+            border-radius: 4px;
+            transition: width 1s ease;
         }
-
-        .history-item.low {
-            background: linear-gradient(135deg, #1abc9c, #16a085);
-        }
-
-        .history-item.crash {
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
-        }
-
-        .empty-history {
-            text-align: center;
-            color: #555;
-            padding: 20px;
-        }
-
-        /* الإحصائيات */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-        }
-
-        .stat-card {
-            background: rgba(255,255,255,0.05);
-            padding: 20px 15px;
-            border-radius: 20px;
-            text-align: center;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            background: rgba(255,255,255,0.08);
-        }
-
-        .stat-icon {
-            font-size: 1.5em;
-            margin-bottom: 8px;
-        }
-
-        .stat-value {
-            font-size: 1.6em;
-            font-weight: 700;
-            color: #f39c12;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            font-size: 0.8em;
-            color: #666;
-        }
-
-        /* النصائح */
-        .tips-section {
-            margin-top: 25px;
-            padding: 20px;
-            background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(155, 89, 182, 0.1));
-            border-radius: 20px;
-            border: 1px solid rgba(243, 156, 18, 0.2);
-        }
-
-        .tips-title {
-            display: flex;
+        
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            z-index: 50;
+            display: none;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-            color: #f39c12;
-            font-weight: 700;
+            justify-content: center;
+            padding: 1rem;
         }
-
-        .tips-list {
-            list-style: none;
-        }
-
-        .tips-list li {
+        
+        .modal-overlay.show {
             display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 0;
-            color: #aaa;
-            font-size: 0.95em;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
-
-        .tips-list li:last-child {
-            border-bottom: none;
-        }
-
-        /* الفوتر */
-        .footer {
+        
+        /* Success message style */
+        .success-msg {
+            background: rgba(0, 230, 118, 0.2);
+            border: 1px solid #00e676;
+            color: #00e676;
+            padding: 10px;
+            border-radius: 8px;
             text-align: center;
-            padding: 30px 20px;
-            color: #444;
-            font-size: 0.85em;
-        }
-
-        .footer-logo {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-
-        /* تأثيرات إضافية */
-        .sparkle {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: white;
-            border-radius: 50%;
-            animation: sparkle 1s ease-out forwards;
-            pointer-events: none;
-        }
-
-        @keyframes sparkle {
-            0% { transform: scale(0); opacity: 1; }
-            100% { transform: scale(2); opacity: 0; }
-        }
-
-        /* الريسبونسيف */
-        @media (max-width: 480px) {
-            .prediction-number {
-                font-size: 3.5em;
-            }
-            .app-title {
-                font-size: 1.8em;
-            }
-            .predict-btn {
-                font-size: 1.3em;
-                padding: 20px;
-            }
-            .stats-grid {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 10px;
-            }
-            .stat-card {
-                padding: 15px 10px;
-            }
-            .stat-value {
-                font-size: 1.3em;
-            }
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <!-- شاشة التحميل -->
-    <div class="loading-screen" id="loadingScreen">
-        <div class="loading-plane">🛩️</div>
-        <div class="loading-text">جاري تحميل المنصة...</div>
-        <div class="loading-bar">
-            <div class="loading-progress"></div>
-        </div>
-    </div>
+    <!-- Animated Background -->
+    <div class="bg-animated"></div>
+    <div class="grid-overlay"></div>
+    
+    <!-- Particles -->
+    <div id="particles"></div>
 
-    <!-- الخلفية المتحركة -->
-    <div class="background">
-        <div class="stars" id="starsContainer"></div>
-    </div>
-
-    <div class="container">
-        <!-- صفحة تسجيل الدخول -->
-        <div class="login-page" id="loginPage">
-            <div class="logo-container">
-                <div class="logo-glow"></div>
-                <div class="logo-plane">🛩️</div>
-            </div>
-
-            <h1 class="app-title">منصة تخمين الطيارة</h1>
-            <p class="app-subtitle">النسخة المتقدمة - أدخل مفتاح التفعيل</p>
-
-            <div class="login-card">
-                <div class="input-wrapper">
-                    <span class="input-icon">🔑</span>
-                    <input 
-                        type="text" 
-                        class="key-input" 
-                        id="keyInput"
-                        placeholder="أدخل المفتاح السري"
-                        autocomplete="off"
-                        maxlength="25"
-                    >
+    <!-- Login Screen -->
+    <div id="loginScreen" class="screen active">
+        <div class="min-h-screen flex items-center justify-center p-4">
+            <div class="w-full max-w-md">
+                <!-- Logo -->
+                <div class="text-center mb-8">
+                    <div class="inline-block mb-4">
+                        <svg width="80" height="80" viewBox="0 0 100 100" class="mx-auto">
+                            <defs>
+                                <linearGradient id="planeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" style="stop-color:#ff3d00"/>
+                                    <stop offset="100%" style="stop-color:#ffd700"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="M50 10 L90 50 L70 50 L70 90 L30 90 L30 50 L10 50 Z" fill="url(#planeGrad)" transform="rotate(-45 50 50)"/>
+                        </svg>
+                    </div>
+                    <h1 class="font-display text-4xl font-bold mb-2">AVIATOR PRO</h1>
+                    <p class="text-gray-400">نظام التخمين الذكي المتقدم</p>
                 </div>
 
-                <button class="login-btn" id="loginBtn" onclick="verifyKey()">
-                    <span>🚀 تفعيل الدخول</span>
-                </button>
-
-                <p class="error-message" id="errorMessage">
-                    ❌ المفتاح غير صحيح، حاول مرة أخرى
-                </p>
-
-                <div class="features">
-                    <div class="feature">
-                        <span class="feature-icon">🔒</span>
-                        <span>آمن ومشفر</span>
-                    </div>
-                    <div class="feature">
-                        <span class="feature-icon">⚡</span>
-                        <span>سريع ودقيق</span>
-                    </div>
-                    <div class="feature">
-                        <span class="feature-icon">🎯</span>
-                        <span>تخمينات ذكية</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- صفحة التخمين -->
-        <div class="game-page" id="gamePage">
-            <div class="top-bar">
-                <div class="top-bar-title">
-                    <span>🛩️</span>
-                    منصة الطيارة
-                </div>
-                <button class="logout-btn" onclick="logout()">
-                    🚪 خروج
-                </button>
-            </div>
-
-            <div class="prediction-card">
-                <div class="prediction-content">
-                    <div class="signal-indicator">
-                        <div class="signal-bars">
-                            <div class="signal-bar"></div>
-                            <div class="signal-bar"></div>
-                            <div class="signal-bar"></div>
-                            <div class="signal-bar"></div>
+                <!-- Login Card -->
+                <div class="card p-8">
+                    <h2 class="text-2xl font-bold mb-6 text-center">تسجيل الدخول</h2>
+                    
+                    <form id="loginForm" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-2 text-gray-300">مفتاح الدخول</label>
+                            <input type="text" id="accessKey" class="input-field" placeholder="أدخل مفتاح الدخول" required autocomplete="off">
                         </div>
-                        <span>إشارة قوية</span>
+                        <button type="submit" class="btn-primary w-full text-lg mt-6">دخول</button>
+                    </form>
+
+                    <div class="mt-6 text-center">
+                        <p class="text-gray-400 mb-4">ليس لديك مفتاح؟</p>
+                        <button onclick="showScreen('subscriptionScreen')" class="btn-secondary w-full">احصل على اشتراك</button>
                     </div>
 
-                    <div class="main-plane">✈️</div>
-                    
-                    <p class="prediction-label">التخمين للجولة القادمة</p>
-                    
-                    <div class="prediction-number" id="predictionNumber">?.??x</div>
-
-                    <div class="prediction-time">
-                        <span class="time-icon">🔄</span>
-                        <span>آخر تحديث: </span>
-                        <span id="lastUpdate">--:--:--</span>
-                    </div>
+                    <div id="loginError" class="mt-4 text-red-500 text-center hidden"></div>
                 </div>
-            </div>
-
-            <button class="predict-btn" id="predictBtn" onclick="generatePrediction()">
-                <span class="btn-text">🎲 احصل على تخمين جديد</span>
-            </button>
-
-            <div class="history-section">
-                <div class="section-header">
-                    <div class="section-title">
-                        <span>📊</span>
-                        سجل التخمينات
-                    </div>
-                    <button class="clear-btn" onclick="clearHistory()">مسح السجل</button>
-                </div>
-
-                <div class="history-grid" id="historyGrid">
-                    <div class="empty-history">لا توجد تخمينات سابقة</div>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">📈</div>
-                        <div class="stat-value" id="totalPredictions">0</div>
-                        <div class="stat-label">إجمالي التخمينات</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">⚖️</div>
-                        <div class="stat-value" id="avgValue">0.00</div>
-                        <div class="stat-label">المتوسط</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🏆</div>
-                        <div class="stat-value" id="maxValue">0.00</div>
-                        <div class="stat-label">الأعلى</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tips-section">
-                <div class="tips-title">
-                    <span>💡</span>
-                    نصائح مهمة
-                </div>
-                <ul class="tips-list">
-                    <li><span>✅</span> اضغط على الزر للحصول على تخمين جديد</li>
-                    <li><span>✅</span> راقب السجل لمعرفة نمط الأرقام</li>
-                    <li><span>✅</span> المنصة تعمل بنظام التخمين الذكي</li>
-                </ul>
-            </div>
-
-            <div class="footer">
-                <div class="footer-logo">🛩️</div>
-                <div>منصة تخمين الطيارة - النسخة المتقدمة</div>
             </div>
         </div>
+    </div>
+
+    <!-- Subscription Screen -->
+    <div id="subscriptionScreen" class="screen">
+        <div class="min-h-screen p-4 py-12">
+            <div class="max-w-6xl mx-auto">
+                <!-- Header -->
+                <div class="text-center mb-12">
+                    <h1 class="font-display text-4xl font-bold mb-4">خطط الاشتراك</h1>
+                    <p class="text-gray-400 text-lg">اختر الخطة المناسبة لك وابدأ التخمين الذكي</p>
+                </div>
+
+                <!-- Back Button -->
+                <button onclick="showScreen('loginScreen')" class="btn-secondary mb-8">
+                    <span class="flex items-center gap-2">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5M12 19l-7-7 7-7"/>
+                        </svg>
+                        العودة
+                    </span>
+                </button>
+
+                <!-- Plans -->
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Daily -->
+                    <div class="card sub-card p-6">
+                        <div class="text-center mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold">يوم واحد</h3>
+                        </div>
+                        <div class="text-center mb-6">
+                            <span class="font-display text-4xl font-bold">$5</span>
+                        </div>
+                        <button onclick="selectPlan('daily')" class="btn-secondary w-full">اشترك الآن</button>
+                    </div>
+
+                    <!-- Two Days -->
+                    <div class="card sub-card p-6">
+                        <div class="text-center mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold">يومين</h3>
+                        </div>
+                        <div class="text-center mb-6">
+                            <span class="font-display text-4xl font-bold">$8</span>
+                        </div>
+                        <button onclick="selectPlan('twoDays')" class="btn-secondary w-full">اشترك الآن</button>
+                    </div>
+
+                    <!-- Weekly - Featured -->
+                    <div class="card sub-card featured p-6">
+                        <div class="text-center mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold">أسبوع</h3>
+                        </div>
+                        <div class="text-center mb-6">
+                            <span class="font-display text-4xl font-bold text-amber-500">$25</span>
+                        </div>
+                        <button onclick="selectPlan('weekly')" class="btn-primary w-full">اشترك الآن</button>
+                    </div>
+
+                    <!-- Monthly -->
+                    <div class="card sub-card p-6">
+                        <div class="text-center mb-6">
+                            <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                    <rect x="3" y="4" width="18" height="18" rx="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold">شهر</h3>
+                        </div>
+                        <div class="text-center mb-6">
+                            <span class="font-display text-4xl font-bold text-emerald-500">$70</span>
+                        </div>
+                        <button onclick="selectPlan('monthly')" class="btn-secondary w-full">اشترك الآن</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal" class="modal-overlay">
+        <div class="card p-8 max-w-md w-full relative">
+            <button onclick="closePaymentModal()" class="absolute top-4 left-4 text-gray-400 hover:text-white">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+            <h3 class="text-2xl font-bold mb-6 text-center">إتمام الاشتراك</h3>
+            <div id="paymentDetails" class="space-y-4"></div>
+            <form id="paymentForm" class="space-y-4 mt-6">
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-gray-300">رقم الهاتف</label>
+                    <input type="tel" class="input-field" placeholder="أدخل رقم هاتفك" required>
+                </div>
+                <button type="submit" class="btn-primary w-full">تأكيد الدفع</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboardScreen" class="screen">
+        <!-- Header -->
+        <header class="sticky top-0 z-40 bg-black/50 backdrop-blur-xl border-b border-white/10">
+            <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <svg width="40" height="40" viewBox="0 0 100 100">
+                        <defs>
+                            <linearGradient id="planeGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#ff3d00"/>
+                                <stop offset="100%" style="stop-color:#ffd700"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M50 10 L90 50 L70 50 L70 90 L30 90 L30 50 L10 50 Z" fill="url(#planeGrad2)" transform="rotate(-45 50 50)"/>
+                    </svg>
+                    <span class="font-display text-xl font-bold hidden sm:block">AVIATOR PRO</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-left">
+                        <p class="text-sm text-gray-400">ينتهي اشتراكك بعد</p>
+                        <p id="expiryDate" class="font-bold text-amber-500 countdown"></p>
+                    </div>
+                    <button onclick="logout()" class="btn-secondary text-sm py-2 px-4">خروج</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 py-8">
+            <!-- Stats Row -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="card p-4 text-center">
+                    <p class="text-gray-400 text-sm mb-1">التخمينات اليوم</p>
+                    <p class="font-display text-2xl font-bold text-amber-500" id="todayPredictions">0</p>
+                </div>
+                <div class="card p-4 text-center">
+                    <p class="text-gray-400 text-sm mb-1">نسبة النجاح</p>
+                    <p class="font-display text-2xl font-bold text-emerald-500" id="successRate">94%</p>
+                </div>
+                <div class="card p-4 text-center">
+                    <p class="text-gray-400 text-sm mb-1">أعلى مضاعف</p>
+                    <p class="font-display text-2xl font-bold text-purple-500" id="highestMulti">12.5x</p>
+                </div>
+                <div class="card p-4 text-center">
+                    <p class="text-gray-400 text-sm mb-1">المستخدمين النشطين</p>
+                    <p class="font-display text-2xl font-bold" id="activeUsers">1,247</p>
+                </div>
+            </div>
+
+            <!-- Main Prediction Area -->
+            <div class="grid lg:grid-cols-3 gap-6">
+                <!-- Prediction Panel -->
+                <div class="lg:col-span-2">
+                    <div class="card p-6">
+                        <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 6v6l4 2"/>
+                            </svg>
+                            التوقع التالي
+                        </h2>
+
+                        <!-- Plane Animation -->
+                        <div class="plane-container mb-6 rounded-xl bg-black/30" id="planeContainer">
+                            <div class="plane" id="plane">
+                                <svg width="60" height="60" viewBox="0 0 100 100">
+                                    <path d="M50 10 L90 50 L70 50 L70 90 L30 90 L30 50 L10 50 Z" fill="#ff3d00"/>
+                                </svg>
+                            </div>
+                            <div class="plane-path"></div>
+                        </div>
+
+                        <!-- Prediction Display -->
+                        <div class="text-center mb-8">
+                            <p class="text-gray-400 mb-2">المضاعف المتوقع</p>
+                            <div class="multiplier-display" id="predictedMultiplier">?.??x</div>
+                            <p class="text-gray-400 mt-2">النهاية المتوقعة</p>
+                            <p class="font-display text-2xl font-bold mt-1" id="predictedCrash">?.??x</p>
+                        </div>
+
+                        <!-- Confidence -->
+                        <div class="mb-6">
+                            <div class="flex justify-between mb-2">
+                                <span class="text-gray-400">نسبة الثقة</span>
+                                <span class="font-bold text-emerald-500" id="confidence">94%</span>
+                            </div>
+                            <div class="stat-bar">
+                                <div class="stat-bar-fill" style="width: 94%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <button onclick="generatePrediction()" class="btn-primary flex-1 flex items-center justify-center gap-2">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M23 4v6h-6M1 20v-6h6"/>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                                </svg>
+                                توليد توقع جديد
+                            </button>
+                            <button onclick="copyPrediction()" class="btn-secondary flex-1 flex items-center justify-center gap-2">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="9" y="9" width="13" height="13" rx="2"/>
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                </svg>
+                                نسخ التوقع
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Recent Predictions -->
+                    <div class="card p-6 mt-6">
+                        <h3 class="text-lg font-bold mb-4">التوقعات الأخيرة</h3>
+                        <div id="recentPredictions" class="space-y-2">
+                            <p class="text-gray-400 text-center">لا توجد توقعات بعد</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="space-y-6">
+                    <!-- Live Feed -->
+                    <div class="card p-6">
+                        <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                            <span class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+                            مباشر
+                        </h3>
+                        <div id="liveFeed" class="space-y-3 max-h-64 overflow-y-auto"></div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="card p-6">
+                        <h3 class="text-lg font-bold mb-4">إحصائيات سريعة</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-gray-400">1x - 2x</span>
+                                    <span>45%</span>
+                                </div>
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill" style="width: 45%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-gray-400">2x - 5x</span>
+                                    <span>35%</span>
+                                </div>
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill" style="width: 35%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-gray-400">5x - 10x</span>
+                                    <span>15%</span>
+                                </div>
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill" style="width: 15%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-gray-400">10x+</span>
+                                    <span>5%</span>
+                                </div>
+                                <div class="stat-bar">
+                                    <div class="stat-bar-fill" style="width: 5%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script>
-        // ═══════════════════════════════════════════════════════════════
-        // 🔑 المفتاح السري - يمكنك تغييره لأي كلمة تريدها
-        // ═══════════════════════════════════════════════════════════════
-        const SECRET_KEY = "AVIATOR2024";
-        // ═══════════════════════════════════════════════════════════════
+        // Initialize particles
+        (function createParticles() {
+            const container = document.getElementById('particles');
+            if (!container) return;
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        })();
 
-        let history = [];
-        let totalPredictions = 0;
-        let maxValue = 0;
+        // Data Store - KEYS ARE CASE INSENSITIVE NOW
+        const validKeys = {
+            'demo-day-2024': { plan: 'daily', expiry: 1 },
+            'demo-2days-2024': { plan: 'twoDays', expiry: 2 },
+            'demo-week-2024': { plan: 'weekly', expiry: 7 },
+            'demo-month-2024': { plan: 'monthly', expiry: 30 }
+        };
 
-        // إنشاء النجوم
-        function createStars() {
-            const container = document.getElementById('starsContainer');
+        const planPrices = {
+            daily: 5,
+            twoDays: 8,
+            weekly: 25,
+            monthly: 70
+        };
+
+        const planNames = {
+            daily: 'يوم واحد',
+            twoDays: 'يومين',
+            weekly: 'أسبوع',
+            monthly: 'شهر'
+        };
+
+        let currentUser = null;
+        let predictions = [];
+        let predictionCount = 0;
+        let liveFeedInterval = null;
+
+        // Screen Management
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            setTimeout(() => {
+                const targetScreen = document.getElementById(screenId);
+                if (targetScreen) {
+                    targetScreen.classList.add('active');
+                }
+            }, 50);
+        }
+
+        // Login Handler - FIXED
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
             
-            // نجوم ثابتة
-            for (let i = 0; i < 100; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 100 + '%';
-                star.style.width = (Math.random() * 3 + 1) + 'px';
-                star.style.height = star.style.width;
-                star.style.animationDelay = Math.random() * 3 + 's';
-                star.style.animationDuration = (Math.random() * 2 + 2) + 's';
-                container.appendChild(star);
-            }
+            // 1. Get value and trim spaces
+            let keyRaw = document.getElementById('accessKey').value;
+            let key = keyRaw.trim().toLowerCase(); // Remove spaces and make lowercase
+            
+            const errorDiv = document.getElementById('loginError');
 
-            // شهب
-            for (let i = 0; i < 3; i++) {
-                const shootingStar = document.createElement('div');
-                shootingStar.className = 'shooting-star';
-                shootingStar.style.top = Math.random() * 50 + '%';
-                shootingStar.style.right = Math.random() * 30 + '%';
-                shootingStar.style.animationDelay = (i * 5 + Math.random() * 5) + 's';
-                shootingStar.style.animationDuration = (Math.random() * 2 + 2) + 's';
-                container.appendChild(shootingStar);
-            }
+            // 2. Check key
+            if (validKeys[key]) {
+                const keyData = validKeys[key];
+                const expiryDate = new Date();
+                expiryDate.setDate(expiryDate.getDate() + keyData.expiry);
 
-            // طائرات خلفية
-            setInterval(() => {
-                if (Math.random() > 0.7) {
-                    const plane = document.createElement('div');
-                    plane.className = 'floating-plane';
-                    plane.textContent = '✈️';
-                    plane.style.top = Math.random() * 80 + '%';
-                    plane.style.animationDuration = (Math.random() * 15 + 20) + 's';
-                    container.appendChild(plane);
-                    setTimeout(() => plane.remove(), 35000);
+                currentUser = {
+                    plan: keyData.plan,
+                    expiry: expiryDate.toISOString()
+                };
+
+                // 3. Save to localStorage safely
+                try {
+                    localStorage.setItem('aviatorUser', JSON.stringify(currentUser));
+                } catch (e) {
+                    console.log("LocalStorage not available, proceeding with session only.");
                 }
-            }, 5000);
-        }
-
-        // إخفاء شاشة التحميل
-        function hideLoadingScreen() {
-            setTimeout(() => {
-                document.getElementById('loadingScreen').classList.add('hidden');
-            }, 2500);
-        }
-
-        // التحقق من المفتاح
-        function verifyKey() {
-            const input = document.getElementById('keyInput');
-            const errorMsg = document.getElementById('errorMessage');
-            const enteredKey = input.value.trim().toUpperCase();
-
-            if (enteredKey === SECRET_KEY) {
-                input.classList.remove('error');
-                input.classList.add('success');
-                errorMsg.style.display = 'none';
-
-                setTimeout(() => {
-                    document.getElementById('loginPage').classList.add('hidden');
-                    document.getElementById('gamePage').classList.add('active');
-                    generatePrediction();
-                }, 500);
-            } else {
-                input.classList.add('error');
-                errorMsg.style.display = 'block';
                 
-                setTimeout(() => {
-                    input.classList.remove('error');
-                }, 500);
+                // 4. Show Success
+                errorDiv.classList.add('hidden');
+                initDashboard();
+                showScreen('dashboardScreen');
+
+            } else {
+                // Show Error
+                errorDiv.textContent = 'مفتاح الدخول غير صحيح. تأكد من النسخ الصحيح.';
+                errorDiv.classList.remove('hidden');
             }
+        });
+
+        // Initialize Dashboard
+        function initDashboard() {
+            const expiryDateEl = document.getElementById('expiryDate');
+            const now = new Date();
+            const expiry = new Date(currentUser.expiry);
+            const diff = expiry - now;
+            const days = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+            
+            if (expiryDateEl) {
+                expiryDateEl.textContent = days + ' يوم';
+            }
+
+            loadRecentPredictions();
+            startLiveFeed();
         }
 
-        // تسجيل الخروج
-        function logout() {
-            document.getElementById('gamePage').classList.remove('active');
-            document.getElementById('loginPage').classList.remove('hidden');
-            document.getElementById('keyInput').value = '';
-            document.getElementById('keyInput').classList.remove('success');
-            document.getElementById('errorMessage').style.display = 'none';
-        }
-
-        // توليد تخمين
+        // Generate Prediction
         function generatePrediction() {
-            const btn = document.getElementById('predictBtn');
-            btn.classList.add('loading');
+            const plane = document.getElementById('plane');
+            
+            plane.style.animation = 'none';
+            void plane.offsetHeight; 
+            plane.style.animation = 'flyUp 3s ease-out forwards';
+
+            const multiplier = (Math.random() * 15 + 1).toFixed(2);
+            const crash = (Math.random() * parseFloat(multiplier) + 1).toFixed(2);
+            const confidence = Math.floor(Math.random() * 20 + 80);
+
+            predictionCount++;
+            document.getElementById('todayPredictions').textContent = predictionCount;
 
             setTimeout(() => {
-                const random = Math.random();
-                let result;
-
-                if (random < 0.25) {
-                    result = 1 + Math.random() * 0.49;
-                } else if (random < 0.45) {
-                    result = 1.5 + Math.random() * 0.5;
-                } else if (random < 0.65) {
-                    result = 2 + Math.random() * 3;
-                } else if (random < 0.82) {
-                    result = 5 + Math.random() * 10;
-                } else if (random < 0.95) {
-                    result = 15 + Math.random() * 35;
-                } else {
-                    result = 50 + Math.random() * 50;
+                document.getElementById('predictedMultiplier').textContent = multiplier + 'x';
+                document.getElementById('predictedCrash').textContent = crash + 'x';
+                document.getElementById('confidence').textContent = confidence + '%';
+                
+                const barFill = document.querySelector('.stat-bar-fill');
+                if (barFill) {
+                    barFill.style.width = confidence + '%';
                 }
+            }, 1000);
 
-                // تحديث الرقم
-                const numberEl = document.getElementById('predictionNumber');
-                numberEl.style.animation = 'none';
-                numberEl.offsetHeight;
-                numberEl.style.animation = 'numberPop 0.5s ease, gradientMove 3s ease infinite';
-                numberEl.textContent = result.toFixed(2) + 'x';
-
-                // تحديث الوقت
-                const now = new Date();
-                document.getElementById('lastUpdate').textContent = 
-                    now.toLocaleTimeString('ar-EG');
-
-                // تحديث الإحصائيات
-                totalPredictions++;
-                if (result > maxValue) maxValue = result;
-                history.unshift(result);
-                if (history.length > 10) history.pop();
-
-                updateHistory();
-                updateStats();
-                createSparkles();
-
-                btn.classList.remove('loading');
-            }, 800);
+            const prediction = {
+                time: new Date().toLocaleTimeString('ar-EG'),
+                multiplier: multiplier,
+                crash: crash,
+                confidence: confidence
+            };
+            predictions.unshift(prediction);
+            if (predictions.length > 10) predictions.pop();
+            loadRecentPredictions();
         }
 
-        // تحديث السجل
-        function updateHistory() {
-            const container = document.getElementById('historyGrid');
-            container.innerHTML = '';
-
-            if (history.length === 0) {
-                container.innerHTML = '<div class="empty-history">لا توجد تخمينات سابقة</div>';
+        // Load Recent Predictions
+        function loadRecentPredictions() {
+            const container = document.getElementById('recentPredictions');
+            if (!container) return;
+            
+            if (predictions.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center">لا توجد توقعات بعد</p>';
                 return;
             }
 
-            history.forEach((value, index) => {
+            container.innerHTML = predictions.map(p => `
+                <div class="history-item prediction-result">
+                    <span class="text-gray-400">${p.time}</span>
+                    <span class="font-bold">${p.multiplier}x</span>
+                    <span class="text-emerald-500">${p.confidence}%</span>
+                </div>
+            `).join('');
+        }
+
+        // Live Feed
+        function startLiveFeed() {
+            const container = document.getElementById('liveFeed');
+            if (!container) return;
+            
+            const names = ['أحمد', 'محمد', 'علي', 'خالد', 'سعود', 'فهد', 'عمر', 'يزيد'];
+            
+            function addFeedItem() {
+                const name = names[Math.floor(Math.random() * names.length)];
+                const multi = (Math.random() * 20 + 1).toFixed(2);
+                const won = Math.random() > 0.3;
+                
                 const item = document.createElement('div');
-                item.className = 'history-item';
-                item.style.animationDelay = (index * 0.1) + 's';
-
-                if (value >= 50) {
-                    item.classList.add('legendary');
-                } else if (value >= 10) {
-                    item.classList.add('high');
-                } else if (value >= 2) {
-                    item.classList.add('medium');
-                } else if (value >= 1.5) {
-                    item.classList.add('low');
-                } else {
-                    item.classList.add('crash');
+                item.className = 'flex justify-between items-center text-sm prediction-result';
+                item.innerHTML = `
+                    <span>${name}</span>
+                    <span class="${won ? 'text-emerald-500' : 'text-red-500'}">${multi}x</span>
+                `;
+                
+                container.insertBefore(item, container.firstChild);
+                if (container.children.length > 10) {
+                    container.removeChild(container.lastChild);
                 }
+            }
 
-                item.textContent = value.toFixed(2) + 'x';
-                container.appendChild(item);
+            for (let i = 0; i < 5; i++) {
+                addFeedItem();
+            }
+
+            if (liveFeedInterval) clearInterval(liveFeedInterval);
+            liveFeedInterval = setInterval(addFeedItem, 3000);
+        }
+
+        // Copy Prediction
+        function copyPrediction() {
+            const multiEl = document.getElementById('predictedMultiplier');
+            const crashEl = document.getElementById('predictedCrash');
+            const confEl = document.getElementById('confidence');
+            
+            if (!multiEl || !crashEl || !confEl) return;
+
+            const multi = multiEl.textContent;
+            const crash = crashEl.textContent;
+            const conf = confEl.textContent;
+            
+            const text = `Aviator Pro Prediction\nMultiplier: ${multi}\nCrash Point: ${crash}\nConfidence: ${conf}`;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                alert('تم نسخ التوقع بنجاح!');
+            }).catch(() => {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('تم نسخ التوقع بنجاح!');
             });
         }
 
-        // تحديث الإحصائيات
-        function updateStats() {
-            document.getElementById('totalPredictions').textContent = totalPredictions;
-            document.getElementById('maxValue').textContent = maxValue.toFixed(2) + 'x';
+        // Subscription Selection
+        function selectPlan(plan) {
+            const modal = document.getElementById('paymentModal');
+            const details = document.getElementById('paymentDetails');
+            
+            if (!modal || !details) return;
 
-            if (history.length > 0) {
-                const avg = history.reduce((a, b) => a + b, 0) / history.length;
-                document.getElementById('avgValue').textContent = avg.toFixed(2) + 'x';
+            details.innerHTML = `
+                <div class="bg-black/30 p-4 rounded-xl">
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-400">الخطة</span>
+                        <span class="font-bold">${planNames[plan]}</span>
+                    </div>
+                    <div class="flex justify-between mb-2">
+                        <span class="text-gray-400">السعر</span>
+                        <span class="font-bold text-amber-500">$${planPrices[plan]}</span>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.add('show');
+            modal.dataset.selectedPlan = plan;
+        }
+
+        // Close Payment Modal
+        function closePaymentModal() {
+            const modal = document.getElementById('paymentModal');
+            if (modal) {
+                modal.classList.remove('show');
             }
         }
 
-        // مسح السجل
-        function clearHistory() {
-            history = [];
-            totalPredictions = 0;
-            maxValue = 0;
-            updateHistory();
-            updateStats();
-            document.getElementById('predictionNumber').textContent = '?.??x';
-        }
+        // Payment Form Handler
+        document.getElementById('paymentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const modal = document.getElementById('paymentModal');
+            if (!modal) return;
+            
+            const plan = modal.dataset.selectedPlan;
+            
+            const keyMap = {
+                daily: 'DEMO-DAY-2024',
+                twoDays: 'DEMO-2DAYS-2024',
+                weekly: 'DEMO-WEEK-2024',
+                monthly: 'DEMO-MONTH-2024'
+            };
+            
+            alert('تم الاشتراك بنجاح!\nمفتاح الدخول الخاص بك: ' + keyMap[plkeyMap[plan]]);
+            closePaymentModal();
+            showScreen('loginScreen');
+        });
 
-        // تأثير البريق
-        function createSparkles() {
-            const card = document.querySelector('.prediction-card');
-            for (let i = 0; i < 8; i++) {
-                setTimeout(() => {
-                    const sparkle = document.createElement('div');
-                    sparkle.className = 'sparkle';
-                    sparkle.style.left = Math.random() * 100 + '%';
-                    sparkle.style.top = Math.random() * 100 + '%';
-                    card.appendChild(sparkle);
-                    setTimeout(() => sparkle.remove(), 1000);
-                }, i * 100);
+        // Logout
+        function logout() {
+            if (liveFeedInterval) {
+                clearInterval(liveFeedInterval);
             }
+            try {
+                localStorage.removeItem('aviatorUser');
+            } catch(e) {}
+            currentUser = null;
+            predictions = [];
+            predictionCount = 0;
+            showScreen('loginScreen');
         }
 
-        // الضغط على Enter
-        document.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const loginPage = document.getElementById('loginPage');
-                if (!loginPage.classList.contains('hidden')) {
-                    verifyKey();
-                } else {
-                    generatePrediction();
+        // Check for existing session on load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedUser = localStorage.getItem('aviatorUser');
+            if (savedUser) {
+                try {
+                    currentUser = JSON.parse(savedUser);
+                    const expiry = new Date(currentUser.expiry);
+                    if (expiry > new Date()) {
+                        initDashboard();
+                        showScreen('dashboardScreen');
+                    } else {
+                        localStorage.removeItem('aviatorUser');
+                    }
+                } catch (e) {
+                    localStorage.removeItem('aviatorUser');
                 }
             }
         });
 
-        // تهيئة الصفحة
-        window.onload = function() {
-            createStars();
-            hideLoadingScreen();
-        };
+        // Keyboard accessibility
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closePaymentModal();
+            }
+        });
     </script>
 </body>
 </html>
