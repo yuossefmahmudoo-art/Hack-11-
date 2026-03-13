@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>طيارة ✈️ - المحترفون</title>
+    <title>طيارة ✈️ - نظام الإشارات</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg: #050505;
-            --accent: #e60000;
+            --accent: #ff0000;
             --card: #0f0f0f;
             --border: #1a1a1a;
         }
@@ -19,185 +19,108 @@
             background: var(--bg);
             color: white;
             min-height: 100vh;
-            overflow-x: hidden;
         }
         .font-display { font-family: 'Orbitron', sans-serif; }
 
-        /* --- LOADING SCREEN --- */
+        /* Loading */
         #loadingScreen {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            z-index: 999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.5s ease-out;
+            position: fixed; inset: 0; background: #000; z-index: 999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.5s;
         }
-        .loader-plane {
-            font-size: 4rem;
-            animation: fly 2s infinite ease-in-out alternate;
-        }
-        @keyframes fly {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            100% { transform: translate(50px, -50px) rotate(-10deg); }
-        }
-        .loader-bar-bg {
-            width: 200px; height: 6px;
-            background: #222;
-            border-radius: 10px;
-            margin-top: 30px;
-            overflow: hidden;
-        }
-        .loader-bar-fill {
-            width: 0%; height: 100%;
-            background: #e60000;
-            animation: load 2s forwards ease-in-out;
-        }
+        .loader-plane { font-size: 4rem; animation: fly 2s infinite ease-in-out alternate; }
+        @keyframes fly { 0% { transform: translate(0, 0) rotate(0deg); } 100% { transform: translate(50px, -50px) rotate(-10deg); } }
+        .loader-bar-bg { width: 200px; height: 6px; background: #222; border-radius: 10px; margin-top: 30px; overflow: hidden; }
+        .loader-bar-fill { width: 0%; height: 100%; background: #e60000; animation: load 2s forwards ease-in-out; }
         @keyframes load { to { width: 100%; } }
 
-        /* --- GAME AREA --- */
+        /* Game Area */
         .game-area {
             position: relative;
             background: radial-gradient(circle at center, #100000 0%, #000000 100%);
-            border: 1px solid #222;
-            border-radius: 12px;
-            height: 400px;
-            overflow: hidden;
+            border: 1px solid #222; border-radius: 12px;
+            height: 400px; overflow: hidden;
         }
         #gameCanvas { width: 100%; height: 100%; display: block; }
 
         .game-overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
             pointer-events: none;
         }
         
-        .multiplier {
+        /* Decision Box (Signal Presentation) */
+        .decision-box {
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #333;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            pointer-events: auto;
+            animation: popIn 0.3s ease-out;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .signal-value {
             font-family: 'Orbitron', sans-serif;
-            font-size: 6rem;
+            font-size: 5rem;
             font-weight: 900;
-            color: white;
-            text-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+            color: #e60000;
+            text-shadow: 0 0 30px rgba(230, 0, 0, 0.5);
+            margin: 10px 0 20px;
         }
-        
-        /* --- COMPONENTS --- */
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 15px;
-            padding: 25px;
-            position: relative;
-            overflow: hidden;
-        }
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #e60000, transparent);
-            opacity: 0.5;
-        }
-        
+
+        /* Buttons */
         .btn-main {
             background: linear-gradient(135deg, #e60000 0%, #800000 100%);
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 1.2rem;
-            border: none;
-            width: 100%;
-            cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 4px 15px rgba(230, 0, 0, 0.2);
+            color: white; padding: 15px; border-radius: 8px;
+            font-weight: bold; font-size: 1.2rem; border: none;
+            width: 100%; cursor: pointer; transition: 0.2s;
         }
         .btn-main:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(230, 0, 0, 0.4); }
-        .btn-main:disabled { background: #333; color: #555; cursor: not-allowed; transform: none; box-shadow: none; }
         
-        .btn-sec {
-            background: #1a1a1a;
-            color: white;
-            padding: 15px;
+        .btn-skip {
+            background: #222;
+            color: #aaa;
+            padding: 12px;
             border-radius: 8px;
             font-weight: bold;
-            border: 1px solid #333;
+            border: 1px solid #444;
             width: 100%;
             cursor: pointer;
             transition: 0.2s;
         }
-        .btn-sec:hover { background: #222; }
+        .btn-skip:hover { background: #333; color: white; }
 
-        .input-box {
-            background: #000;
-            border: 2px solid #222;
-            padding: 20px;
-            border-radius: 10px;
-            color: white;
-            text-align: center;
-            font-size: 1.4rem;
-            width: 100%;
-            outline: none;
-            letter-spacing: 2px;
-            font-weight: bold;
+        .btn-sec {
+            background: #1a1a1a; color: white; padding: 15px; border-radius: 8px;
+            font-weight: bold; border: 1px solid #333; width: 100%; cursor: pointer;
         }
-        .input-box:focus { border-color: #e60000; box-shadow: 0 0 20px rgba(230, 0, 0, 0.2); }
+
+        /* Components */
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 25px; }
+        .input-box {
+            background: #000; border: 2px solid #222; padding: 20px;
+            border-radius: 10px; color: white; text-align: center;
+            font-size: 1.4rem; width: 100%; outline: none;
+        }
+        .input-box:focus { border-color: #e60000; }
 
         .screen { display: none; }
         .screen.active { display: block; }
 
-        /* History & Live */
-        .history-badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            margin: 2px;
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
+        .history-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; margin: 2px; font-weight: bold; }
         .h-low { background: #2a0505; color: #ff4d4d; border: 1px solid #ff4d4d33; }
         .h-mid { background: #05102a; color: #4d94ff; border: 1px solid #4d94ff33; }
         .h-high { background: #1a052a; color: #d94dff; border: 1px solid #d94dff33; }
 
-        .live-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px;
-            background: rgba(255,255,255,0.02);
-            border-radius: 4px;
-            margin-bottom: 4px;
-            font-size: 0.85rem;
-            border-bottom: 1px solid #111;
-            animation: slideIn 0.3s ease-out;
-        }
+        .live-item { display: flex; justify-content: space-between; padding: 8px; background: rgba(255,255,255,0.02); border-radius: 4px; margin-bottom: 4px; font-size: 0.85rem; border-bottom: 1px solid #111; animation: slideIn 0.3s ease-out; }
         @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
 
-        /* Modal */
-        .modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 100; opacity: 0; pointer-events: none;
-            transition: 0.3s;
-        }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: 0.3s; }
         .modal.show { opacity: 1; pointer-events: all; }
-        .modal-content {
-            background: #111;
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            border: 1px solid #333;
-            max-width: 450px;
-            transform: scale(0.8);
-            transition: 0.3s;
-            box-shadow: 0 0 50px rgba(230, 0, 0, 0.1);
-        }
-        .modal.show .modal-content { transform: scale(1); }
+        .modal-content { background: #111; padding: 40px; border-radius: 20px; text-align: center; border: 1px solid #333; max-width: 450px; }
     </style>
 </head>
 <body>
@@ -205,10 +128,8 @@
     <!-- 1. LOADING SCREEN -->
     <div id="loadingScreen">
         <div class="loader-plane">✈️</div>
-        <p class="text-gray-500 mt-4 text-sm font-bold tracking-widest">AVIATOR PRO</p>
-        <div class="loader-bar-bg">
-            <div class="loader-bar-fill"></div>
-        </div>
+        <p class="text-gray-500 mt-4 text-sm font-bold tracking-widest">SYSTEM INITIALIZING</p>
+        <div class="loader-bar-bg"><div class="loader-bar-fill"></div></div>
     </div>
 
     <!-- WELCOME MODAL -->
@@ -216,7 +137,7 @@
         <div class="modal-content">
             <div class="text-6xl mb-4">✈️</div>
             <h2 class="text-3xl font-bold mb-2">مرحباً بك!</h2>
-            <p class="text-gray-400 mb-6">تم تفعيل اشتراكك بنجاح. استمتع بالتوقعات الذكية والربح.</p>
+            <p class="text-gray-400 mb-6">تم تفعيل نظام الإشارات. اختر الإشارة المناسبة وابدأ الربح.</p>
             <button onclick="closeModal()" class="btn-main">ابدأ الآن</button>
         </div>
     </div>
@@ -228,17 +149,14 @@
                 <div class="text-center mb-10">
                     <div class="text-7xl mb-4">✈️</div>
                     <h1 class="font-display text-5xl font-bold mb-1 tracking-wider">طيـارة</h1>
-                    <p class="text-gray-600 text-xs tracking-widest">PREDICTION SYSTEM V.4.0</p>
+                    <p class="text-gray-600 text-xs tracking-widest">SIGNAL SYSTEM V.6.0</p>
                 </div>
-
                 <div class="card shadow-2xl shadow-red-900/10">
                     <div class="text-center mb-6">
                         <h3 class="text-lg text-gray-400">للدخول أدخل كود التفعيل</h3>
                     </div>
                     <form id="loginForm">
-                        <div class="relative">
-                            <input type="text" id="keyInput" class="input-box" placeholder="XXXX-XXXX" autocomplete="off">
-                        </div>
+                        <input type="text" id="keyInput" class="input-box" placeholder="XXXX-XXXX" autocomplete="off">
                         <button type="submit" class="btn-main mt-5">تفعيل الكود</button>
                     </form>
                     <p id="errorMsg" class="text-red-500 mt-4 text-center hidden text-sm"></p>
@@ -254,12 +172,8 @@
     <div id="subScreen" class="screen">
         <div class="min-h-screen p-4 py-12 bg-black">
             <div class="max-w-5xl mx-auto">
-                <button id="backToLogin" class="text-gray-600 mb-8 hover:text-white flex items-center gap-2">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                    رجوع
-                </button>
+                <button id="backToLogin" class="text-gray-600 mb-8 hover:text-white flex items-center gap-2">&larr; رجوع</button>
                 <h1 class="text-4xl font-bold mb-10 text-center">خطط الاشتراك</h1>
-                
                 <div class="grid md:grid-cols-4 gap-6">
                     <div class="card text-center hover:border-red-500 transition-colors group">
                         <h3 class="text-xl mb-2 text-gray-400">يوم واحد</h3>
@@ -294,7 +208,7 @@
                 <span class="text-3xl">✈️</span>
                 <div>
                     <span class="font-bold text-lg block leading-tight">طيـارة</span>
-                    <span class="text-[10px] text-gray-500 tracking-widest">PREDICTION SYSTEM</span>
+                    <span class="text-[10px] text-gray-500 tracking-widest">SIGNAL SYSTEM</span>
                 </div>
             </div>
             <div class="flex items-center gap-4">
@@ -310,26 +224,35 @@
                     <div class="game-area">
                         <canvas id="gameCanvas"></canvas>
                         <div class="game-overlay">
-                            <div id="statusText" class="text-gray-500 mb-2 text-lg tracking-widest uppercase">انتظر التوقع</div>
-                            <div id="multiplierBox" class="multiplier">1.00x</div>
-                            <div id="cooldownText" class="text-gray-500 mt-2 text-sm h-5"></div>
+                            
+                            <!-- PHASE 1: DECISION (Signal Presentation) -->
+                            <div id="decisionPhase" class="decision-box">
+                                <p class="text-gray-400 text-lg">الإشارة المتوقعة</p>
+                                <div id="signalValueDisplay" class="signal-value">0.00x</div>
+                                <p class="text-gray-500 text-xs mb-4">هل تريد اللعب على هذه الإشارة؟</p>
+                                <div class="flex gap-3">
+                                    <button onclick="confirmSignal()" class="btn-main flex-1">موافق (لعب)</button>
+                                    <button onclick="skipSignal()" class="btn-skip flex-1">إلغاء (تغيير)</button>
+                                </div>
+                            </div>
+
+                            <!-- PHASE 2: FLIGHT -->
+                            <div id="flightPhase" class="hidden flex flex-col items-center">
+                                <div id="statusText" class="text-gray-500 mb-2 text-lg tracking-widest uppercase">جاري الطيران</div>
+                                <div id="multiplierBox" class="multiplier" style="font-size: 6rem; color: white; text-shadow: 0 0 30px rgba(255, 0, 0, 0.8);">1.00x</div>
+                            </div>
+
                         </div>
                     </div>
-
+                    
+                    <!-- Action Buttons under Game Area -->
                     <div class="grid grid-cols-2 gap-4">
-                        <button id="startBtn" class="btn-main">توقع الآن</button>
-                        <button id="copyBtn" class="btn-sec">نسخ النتيجة</button>
-                    </div>
-
-                    <div id="resultBox" class="card hidden text-center border-red-500 bg-red-950/20 backdrop-blur">
-                        <p class="text-gray-400 text-sm">توقع الجولة القادمة</p>
-                        <p id="finalVal" class="font-display text-5xl text-white mt-2">0.00x</p>
+                         <button id="copyBtn" onclick="copySignal()" class="btn-sec">نسخ الإشارة</button>
                     </div>
                 </div>
 
                 <!-- Right: Live & Stats -->
                 <div class="space-y-4">
-                    <!-- Live Feed -->
                     <div class="card bg-black border-gray-800">
                         <div class="flex justify-between items-center mb-3 border-b border-gray-900 pb-3">
                             <h3 class="font-bold text-red-500 flex items-center gap-2 text-sm">
@@ -341,9 +264,8 @@
                         <div id="liveFeed" class="space-y-1 h-80 overflow-y-auto pr-1"></div>
                     </div>
 
-                    <!-- History -->
                     <div class="card border-gray-800">
-                        <h3 class="font-bold mb-3 text-xs text-gray-500">سجل التوقعات</h3>
+                        <h3 class="font-bold mb-3 text-xs text-gray-500">سجل الإشارات الناجحة</h3>
                         <div id="historyBox" class="flex flex-wrap gap-1"></div>
                     </div>
                 </div>
@@ -359,32 +281,17 @@
             'KEY-WEEK': 7,
             'KEY-MONTH': 30
         };
-
-        // Massive list of names
-        const names = [
-            'Ahmed', 'Mohammed', 'Ali', 'Khaled', 'Omar', 'Fahad', 'Saad', 'Rashed', 'Youssef', 'Ibrahim',
-            'Karim', 'Tamer', 'Hassan', 'Hussein', 'Mostafa', 'Mahmoud', 'Nasser', 'Faisal', 'Walid', 'Sultan',
-            'Turki', 'Majed', 'Nawaf', 'Saud', 'Bader', 'Jasser', 'Danah', 'Lana', 'Sara', 'Noura',
-            'Reem', 'Huda', 'Mona', 'Aisha', 'Fatima', 'Khadija', 'Mariam', 'Salma', 'Dalia', 'Ghada',
-            'Rania', 'Heba', 'Laila', 'Samira', 'Nadia', 'Farida', 'Aya', 'Yara', 'Tasneem', 'Zahra',
-            'Abdullah', 'Saeed', 'Mutaib', 'Kareem', 'Jawad', 'Nabil', 'Wael', 'Hisham', 'Amr', 'Ayman',
-            'Rami', 'Oday', 'Muath', 'Saleh', 'Thamer', 'Mishari', 'Mansour', 'Rayan', 'Judy', 'Sami'
-        ];
+        const names = ['Ahmed', 'Mohammed', 'Ali', 'Khaled', 'Omar', 'Fahad', 'Saad', 'Rashed', 'Youssef', 'Ibrahim', 'Karim', 'Tamer', 'Hassan', 'Hussein', 'Mostafa', 'Mahmoud', 'Nasser', 'Faisal', 'Walid', 'Sultan'];
         
-        // --- STATE VARIABLES ---
+        // --- STATE ---
         let isAnimating = false;
         let animFrameId = null;
-        let cooldownTimer = null;
+        let currentSignal = 0;
         let explosionParticles = [];
         let currentData = { x: 0, y: 0, target: 2.00, points: [], multiplier: 1.00 };
-        
-        // --- DOM ELEMENTS ---
-        const screens = {
-            login: document.getElementById('loginScreen'),
-            sub: document.getElementById('subScreen'),
-            dash: document.getElementById('dashScreen')
-        };
 
+        // --- ELEMENTS ---
+        const screens = { login: document.getElementById('loginScreen'), sub: document.getElementById('subScreen'), dash: document.getElementById('dashScreen') };
         const els = {
             loader: document.getElementById('loadingScreen'),
             keyInput: document.getElementById('keyInput'),
@@ -392,155 +299,130 @@
             expDate: document.getElementById('expDate'),
             canvas: document.getElementById('gameCanvas'),
             ctx: null,
+            decisionPhase: document.getElementById('decisionPhase'),
+            flightPhase: document.getElementById('flightPhase'),
             statusText: document.getElementById('statusText'),
             multiplierBox: document.getElementById('multiplierBox'),
-            cooldownText: document.getElementById('cooldownText'),
-            resultBox: document.getElementById('resultBox'),
-            finalVal: document.getElementById('finalVal'),
+            signalValueDisplay: document.getElementById('signalValueDisplay'),
             liveFeed: document.getElementById('liveFeed'),
             historyBox: document.getElementById('historyBox'),
-            startBtn: document.getElementById('startBtn'),
             modal: document.getElementById('welcomeModal'),
             userCount: document.getElementById('liveUserCount')
         };
 
-        // --- INITIALIZATION ---
+        // --- INIT ---
         window.onload = function() {
-            // Loading Screen Simulation
             setTimeout(() => {
                 els.loader.style.opacity = '0';
-                setTimeout(() => {
-                    els.loader.style.display = 'none';
-                    initApp();
-                }, 500);
-            }, 2200); // Wait for loading bar animation
+                setTimeout(() => { els.loader.style.display = 'none'; initApp(); }, 500);
+            }, 2200);
         };
 
         function initApp() {
             els.ctx = els.canvas.getContext('2d');
-            
             const exp = localStorage.getItem('avi_exp');
-            if (exp && new Date(exp) > new Date()) {
-                setupDashboard(exp, false);
-            } else {
-                switchScreen('login');
-            }
+            if (exp && new Date(exp) > new Date()) { setupDashboard(exp, false); } else { switchScreen('login'); }
             
-            // Event Listeners
             document.getElementById('loginForm').addEventListener('submit', handleLogin);
             document.getElementById('goToSubBtn').addEventListener('click', () => switchScreen('sub'));
             document.getElementById('backToLogin').addEventListener('click', () => switchScreen('login'));
             document.getElementById('logoutBtn').addEventListener('click', handleLogout);
-            els.startBtn.addEventListener('click', startPrediction);
-            document.getElementById('copyBtn').addEventListener('click', copyResult);
-            
             window.addEventListener('resize', resizeCanvas);
         }
 
-        function switchScreen(name) {
-            Object.values(screens).forEach(s => s.classList.remove('active'));
-            screens[name].classList.add('active');
-        }
+        function switchScreen(name) { Object.values(screens).forEach(s => s.classList.remove('active')); screens[name].classList.add('active'); }
+        function closeModal() { els.modal.classList.remove('show'); }
 
-        function closeModal() {
-            els.modal.classList.remove('show');
-        }
-
-        // --- AUTH HANDLERS ---
+        // --- AUTH ---
         function handleLogin(e) {
             e.preventDefault();
             const key = els.keyInput.value.trim().toUpperCase();
-            
             if (APP_KEYS[key]) {
                 els.loginErr.classList.add('hidden');
-                const days = APP_KEYS[key];
-                const expDate = new Date();
-                expDate.setDate(expDate.getDate() + days);
-                
+                const expDate = new Date(); expDate.setDate(expDate.getDate() + APP_KEYS[key]);
                 localStorage.setItem('avi_exp', expDate.toISOString());
                 setupDashboard(expDate.toISOString(), true);
-            } else {
-                els.loginErr.textContent = 'كود التفعيل غير صحيح';
-                els.loginErr.classList.remove('hidden');
-            }
+            } else { els.loginErr.textContent = 'كود التفعيل غير صحيح'; els.loginErr.classList.remove('hidden'); }
         }
 
-        function handleLogout() {
-            localStorage.removeItem('avi_exp');
-            els.keyInput.value = '';
-            switchScreen('login');
-            if(animFrameId) cancelAnimationFrame(animFrameId);
-            isAnimating = false;
-            els.startBtn.disabled = false;
-        }
-
+        function handleLogout() { localStorage.removeItem('avi_exp'); els.keyInput.value = ''; switchScreen('login'); if(animFrameId) cancelAnimationFrame(animFrameId); isAnimating = false; }
+        
         function setupDashboard(exp, showWelcome) {
             const diff = new Date(exp) - new Date();
             const days = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
             els.expDate.textContent = days + ' يوم متبقي';
-            
             switchScreen('dash');
             resizeCanvas();
             resetCanvas();
             generateFakeHistory();
             startLiveFeed();
-            
-            if (showWelcome) {
-                setTimeout(() => els.modal.classList.add('show'), 300);
-            }
+            generateNewSignal(); // Initial Signal
+            if (showWelcome) setTimeout(() => els.modal.classList.add('show'), 300);
         }
 
-        // --- GAME LOGIC ---
-        function startPrediction() {
-            if (isAnimating || els.startBtn.disabled) return;
-            
-            // UI Reset
-            els.resultBox.classList.add('hidden');
-            els.statusText.textContent = 'جاري الطيران...';
-            els.statusText.classList.remove('text-red-500');
-            els.cooldownText.textContent = '';
-            explosionParticles = [];
-            
-            isAnimating = true;
-            resizeCanvas();
-            
-            // Smart Prediction (Max 10x)
+        // --- SIGNAL LOGIC ---
+        function generateNewSignal() {
+            // Generate random number
             let r = Math.random();
             let target;
-            if (r < 0.6) target = (Math.random() * 2 + 1.5).toFixed(2); 
-            else if (r < 0.9) target = (Math.random() * 3 + 3.5).toFixed(2); 
-            else target = (Math.random() * 3.5 + 6.5).toFixed(2); 
+            if (r < 0.5) target = (Math.random() * 1.5 + 1.1).toFixed(2); // Low (1.1 - 2.5) - Common
+            else if (r < 0.8) target = (Math.random() * 3 + 2.5).toFixed(2); // Medium (2.5 - 5.5)
+            else target = (Math.random() * 4.5 + 5.5).toFixed(2); // High (5.5 - 10.0)
             
-            if (parseFloat(target) > 10.00) target = "10.00";
+            currentSignal = parseFloat(target);
+            els.signalValueDisplay.textContent = currentSignal.toFixed(2) + 'x';
+
+            // Switch UI to Decision Phase
+            els.decisionPhase.classList.remove('hidden');
+            els.flightPhase.classList.add('hidden');
+        }
+
+        function confirmSignal() {
+            if(isAnimating) return;
+            isAnimating = true;
+
+            // Switch UI to Flight Phase
+            els.decisionPhase.classList.add('hidden');
+            els.flightPhase.classList.remove('hidden');
             
-            currentData = { x: 50, y: 350, target: parseFloat(target), points: [], multiplier: 1.00 };
-            
+            els.statusText.textContent = 'جاري الطيران...';
+            els.statusText.classList.remove('text-red-500');
             els.multiplierBox.style.color = '#00ff00';
+            
+            explosionParticles = [];
+            resizeCanvas();
+            
+            currentData = { x: 50, y: 350, target: currentSignal, points: [], multiplier: 1.00 };
             animateGame();
         }
 
+        function skipSignal() {
+            // Animation effect for skipping
+            els.signalValueDisplay.style.opacity = '0';
+            setTimeout(() => {
+                generateNewSignal();
+                els.signalValueDisplay.style.opacity = '1';
+            }, 200);
+        }
+
+        function copySignal() {
+            navigator.clipboard.writeText('إشارة طيارة: ' + currentSignal.toFixed(2) + 'x');
+            alert('تم نسخ الإشارة الحالية: ' + currentSignal.toFixed(2) + 'x');
+        }
+
+        // --- GAME LOOP ---
         function animateGame() {
             if (!isAnimating) return;
-            
-            const ctx = els.ctx;
-            const can = els.canvas;
-            
+            const ctx = els.ctx; const can = els.canvas;
             ctx.clearRect(0, 0, can.width, can.height);
             drawGrid(ctx, can);
             
             // Draw Path
-            ctx.beginPath();
-            ctx.moveTo(50, 350);
+            ctx.beginPath(); ctx.moveTo(50, 350);
             for (let p of currentData.points) ctx.lineTo(p.x, p.y);
-            ctx.strokeStyle = '#e60000';
-            ctx.lineWidth = 4;
-            ctx.stroke();
-            
-            // Fill
-            ctx.lineTo(currentData.x, 350);
-            ctx.lineTo(50, 350);
-            ctx.fillStyle = 'rgba(230, 0, 0, 0.1)';
-            ctx.fill();
+            ctx.strokeStyle = '#e60000'; ctx.lineWidth = 4; ctx.stroke();
+            ctx.lineTo(currentData.x, 350); ctx.lineTo(50, 350);
+            ctx.fillStyle = 'rgba(230, 0, 0, 0.1)'; ctx.fill();
             
             // Logic
             currentData.x += 4;
@@ -549,207 +431,48 @@
             if (currentData.y < 20) currentData.y = 20;
             currentData.points.push({x: currentData.x, y: currentData.y});
             
-            // Draw Plane
-            if (explosionParticles.length === 0) {
-                drawPlane(ctx, currentData.x, currentData.y, -45 - (currentData.multiplier * 5));
-            } else {
-                // Draw Explosion
-                drawExplosion(ctx);
-            }
+            if (explosionParticles.length === 0) drawPlane(ctx, currentData.x, currentData.y, -45 - (currentData.multiplier * 5));
+            else drawExplosion(ctx);
 
             els.multiplierBox.textContent = currentData.multiplier.toFixed(2) + 'x';
             
             if (currentData.multiplier >= currentData.target) {
                 if (explosionParticles.length === 0) triggerExplosion();
-                // Continue animating explosion
                 animFrameId = requestAnimationFrame(animateGame);
                 return;
             }
-            
             animFrameId = requestAnimationFrame(animateGame);
         }
         
-        function drawGrid(ctx, can) {
-            ctx.strokeStyle = '#111';
-            ctx.lineWidth = 1;
-            for(let i=0; i<can.width; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i, can.height); ctx.stroke(); }
-            for(let i=0; i<can.height; i+=50) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(can.width, i); ctx.stroke(); }
-        }
+        function drawGrid(ctx, can) { ctx.strokeStyle = '#111'; ctx.lineWidth = 1; for(let i=0; i<can.width; i+=50) { ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i, can.height); ctx.stroke(); } for(let i=0; i<can.height; i+=50) { ctx.beginPath(); ctx.moveTo(0,i); ctx.lineTo(can.width, i); ctx.stroke(); } }
+        function drawPlane(ctx, x, y, angle) { ctx.save(); ctx.translate(x, y); ctx.rotate(angle * Math.PI / 180); ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.ellipse(0, 0, 18, 6, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#e5e5e5'; ctx.beginPath(); ctx.moveTo(-5, 0); ctx.lineTo(0, -20); ctx.lineTo(5, 0); ctx.lineTo(0, 20); ctx.closePath(); ctx.fill(); ctx.restore(); }
 
-        // Realistic Plane Drawing Function
-        function drawPlane(ctx, x, y, angle) {
-            ctx.save();
-            ctx.translate(x, y);
-            ctx.rotate(angle * Math.PI / 180);
-            
-            // Body
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.ellipse(0, 0, 18, 6, 0, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Wings
-            ctx.fillStyle = '#e5e5e5';
-            ctx.beginPath();
-            ctx.moveTo(-5, 0);
-            ctx.lineTo(0, -20);
-            ctx.lineTo(5, 0);
-            ctx.lineTo(0, 20);
-            ctx.closePath();
-            ctx.fill();
-            
-            // Tail
-            ctx.fillStyle = '#e5e5e5';
-            ctx.beginPath();
-            ctx.moveTo(-15, 0);
-            ctx.lineTo(-18, -10);
-            ctx.lineTo(-12, 0);
-            ctx.lineTo(-18, 10);
-            ctx.closePath();
-            ctx.fill();
-
-            // Glow
-            ctx.shadowColor = '#e60000';
-            ctx.shadowBlur = 20;
-            
-            ctx.restore();
-        }
-
-        // Explosion Logic
         function triggerExplosion() {
             els.multiplierBox.style.color = 'white';
-            els.statusText.textContent = 'تحطمت!';
+            els.statusText.textContent = 'وصلت الإشارة!';
             els.statusText.classList.add('text-red-500');
-            els.finalVal.textContent = currentData.target.toFixed(2) + 'x';
-            els.resultBox.classList.remove('hidden');
-
-            // Create particles
-            for(let i=0; i<30; i++) {
-                explosionParticles.push({
-                    x: currentData.x,
-                    y: currentData.y,
-                    vx: (Math.random() - 0.5) * 10,
-                    vy: (Math.random() - 0.5) * 10,
-                    life: 1.0,
-                    size: Math.random() * 8 + 2
-                });
-            }
-
-            setTimeout(() => {
-                isAnimating = false;
-                startCooldown();
-            }, 1000);
+            addHistoryItem(currentData.target);
+            for(let i=0; i<30; i++) { explosionParticles.push({ x: currentData.x, y: currentData.y, vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10, life: 1.0, size: Math.random() * 8 + 2 }); }
+            setTimeout(() => { isAnimating = false; resetCanvas(); generateNewSignal(); }, 2500); // Wait and show new signal
         }
 
         function drawExplosion(ctx) {
             explosionParticles.forEach((p, index) => {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.life -= 0.05;
-                
-                if (p.life <= 0) {
-                    explosionParticles.splice(index, 1);
-                    return;
-                }
-                
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-                ctx.fillStyle = `rgba(255, 50, 0, ${p.life})`;
-                ctx.fill();
+                p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+                if (p.life <= 0) { explosionParticles.splice(index, 1); return; }
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                ctx.fillStyle = `rgba(255, 50, 0, ${p.life})`; ctx.fill();
             });
         }
-
-        function startCooldown() {
-            addHistoryItem(currentData.target);
-            let secondsLeft = 5;
-            els.startBtn.disabled = true;
-            els.cooldownText.textContent = `انتظر ${secondsLeft} ثواني...`;
-            
-            cooldownTimer = setInterval(() => {
-                secondsLeft--;
-                els.cooldownText.textContent = `انتظر ${secondsLeft} ثواني...`;
-                
-                if (secondsLeft <= 0) {
-                    clearInterval(cooldownTimer);
-                    els.startBtn.disabled = false;
-                    els.cooldownText.textContent = '';
-                    els.statusText.textContent = 'جاهز للتوقع';
-                    els.statusText.classList.remove('text-red-500');
-                    els.multiplierBox.textContent = '1.00x';
-                    explosionParticles = [];
-                    resetCanvas();
-                }
-            }, 1000);
-        }
         
-        function resetCanvas() {
-            const ctx = els.ctx;
-            const can = els.canvas;
-            ctx.clearRect(0, 0, can.width, can.height);
-            drawGrid(ctx, can);
-        }
+        function resetCanvas() { const ctx = els.ctx; const can = els.canvas; ctx.clearRect(0, 0, can.width, can.height); drawGrid(ctx, can); }
+        function resizeCanvas() { const rect = els.canvas.parentElement.getBoundingClientRect(); els.canvas.width = rect.width; els.canvas.height = 400; resetCanvas(); }
 
-        function resizeCanvas() {
-            const rect = els.canvas.parentElement.getBoundingClientRect();
-            els.canvas.width = rect.width;
-            els.canvas.height = 400;
-            resetCanvas();
-        }
-
-        // --- HELPERS ---
-        function copyResult() {
-            const t = els.finalVal.textContent;
-            if(t && t !== '0.00x') {
-                navigator.clipboard.writeText('توقع طيارة: ' + t);
-                alert('تم النسخ: ' + t);
-            } else {
-                alert('لا توجد نتيجة بعد');
-            }
-        }
-
-        function startLiveFeed() {
-            for(let i=0; i<25; i++) addLiveItem(false);
-            
-            setInterval(() => {
-                addLiveItem(true);
-                // Large numbers for realism: 3000 to 7000
-                els.userCount.textContent = (Math.floor(Math.random() * 4000) + 3000).toLocaleString() + ' متصل';
-            }, 600); 
-        }
-        
-        function addLiveItem(removeOld) {
-            const name = names[Math.floor(Math.random() * names.length)];
-            const val = (Math.random() * 9 + 1).toFixed(2); 
-            const won = Math.random() > 0.35;
-            
-            const div = document.createElement('div');
-            div.className = 'live-item';
-            div.innerHTML = `<span class="text-gray-400">${name}</span><span class="${won ? 'text-green-500' : 'text-red-500'} font-bold">${val}x</span>`;
-            
-            els.liveFeed.insertBefore(div, els.liveFeed.firstChild);
-            
-            if (removeOld && els.liveFeed.children.length > 40) {
-                els.liveFeed.lastChild.remove();
-            }
-        }
-        
-        function generateFakeHistory() {
-            els.historyBox.innerHTML = '';
-            for(let i=0; i<10; i++) {
-                let v = (Math.random() * 9 + 1).toFixed(2);
-                addHistoryItem(v);
-            }
-        }
-        
-        function addHistoryItem(v) {
-            let cls = v < 2 ? 'h-low' : (v < 5 ? 'h-mid' : 'h-high');
-            let sp = document.createElement('span');
-            sp.className = 'history-badge ' + cls;
-            sp.textContent = v + 'x';
-            els.historyBox.insertBefore(sp, els.historyBox.firstChild);
-            if(els.historyBox.children.length > 20) els.historyBox.lastChild.remove();
-        }
-
+        // --- LIVE & HISTORY ---
+        function startLiveFeed() { for(let i=0; i<25; i++) addLiveItem(false); setInterval(() => { addLiveItem(true); els.userCount.textContent = (Math.floor(Math.random() * 4000) + 3000).toLocaleString() + ' متصل'; }, 600); }
+        function addLiveItem(removeOld) { const name = names[Math.floor(Math.random() * names.length)]; const val = (Math.random() * 9 + 1).toFixed(2); const won = Math.random() > 0.35; const div = document.createElement('div'); div.className = 'live-item'; div.innerHTML = `<span class="text-gray-400">${name}</span><span class="${won ? 'text-green-500' : 'text-red-500'} font-bold">${val}x</span>`; els.liveFeed.insertBefore(div, els.liveFeed.firstChild); if (removeOld && els.liveFeed.children.length > 40) els.liveFeed.lastChild.remove(); }
+        function generateFakeHistory() { els.historyBox.innerHTML = ''; for(let i=0; i<10; i++) { let v = (Math.random() * 9 + 1).toFixed(2); addHistoryItem(v); } }
+        function addHistoryItem(v) { let cls = v < 2 ? 'h-low' : (v < 5 ? 'h-mid' : 'h-high'); let sp = document.createElement('span'); sp.className = 'history-badge ' + cls; sp.textContent = v + 'x'; els.historyBox.insertBefore(sp, els.historyBox.firstChild); if(els.historyBox.children.length > 20) els.historyBox.lastChild.remove(); }
     </script>
 </body>
 </html>
